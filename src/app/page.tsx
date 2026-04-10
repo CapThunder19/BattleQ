@@ -34,84 +34,78 @@ export default function Onboarding() {
   };
 
   return (
-    <main className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#020203] text-white">
-      {/* Cinematic Background Mesh */}
-      <div className="absolute inset-0 bg-mesh-gradient opacity-30 animate-aurora pointer-events-none" />
+    <main className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#020203] text-white font-mono cyber-grid">
+      {/* Scanline Effect */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.08] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-[100] bg-[length:100%_2px,3px_100%]" />
       
-      {/* Dynamic Grid Overlay */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 contrast-[120%] pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
-
       {/* Aurora Glow effects */}
-      <div className="absolute top-1/4 -right-1/4 w-[800px] h-[800px] bg-primary/20 blur-[180px] rounded-full animate-aurora" />
-      <div className="absolute bottom-1/4 -left-1/4 w-[800px] h-[800px] bg-secondary/15 blur-[180px] rounded-full animate-aurora [animation-delay:4s]" />
+      <div className="absolute top-1/4 -right-1/4 w-[800px] h-[800px] bg-primary/10 blur-[180px] rounded-full animate-pulse" />
+      <div className="absolute bottom-1/4 -left-1/4 w-[800px] h-[800px] bg-accent/10 blur-[180px] rounded-full animate-pulse [animation-delay:2s]" />
 
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 flex flex-col items-center gap-12"
+        className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 flex flex-col items-center gap-16"
       >
         {/* Subheader Badge */}
-        <motion.div variants={itemVariants} className="flex items-center gap-3 glass-panel px-4 py-2 border-white/10 rounded-full bg-white/5">
-            <span className="relative flex h-2 w-2">
+        <motion.div variants={itemVariants} 
+                   className="flex items-center gap-4 bg-background border-2 border-primary/30 px-6 py-2 shadow-[0_0_15px_rgba(0,242,255,0.1)]"
+                   style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}>
+            <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
             </span>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Tactical Arena Live</span>
-            <div className="h-3 w-[1px] bg-white/20 mx-2" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white flex items-center gap-1">
-                <Globe className="w-3 h-3 text-primary" /> 1,248 Online
+            <span className="text-[11px] font-black uppercase tracking-[0.4em] text-primary underline decoration-primary/30 underline-offset-4">ARENA_STATUS: LIVE</span>
+            <div className="h-4 w-[1px] bg-primary/20 mx-2" />
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white flex items-center gap-2">
+                <Globe className="w-3.5 h-3.5 text-primary" /> 1,248_UPLINKS
             </span>
         </motion.div>
 
         {/* Main Logo & Headline */}
-        <div className="flex flex-col items-center gap-4 text-center">
+        <div className="flex flex-col items-center gap-6 text-center">
             <motion.div
                 variants={itemVariants}
                 animate={{ scale: [1, 1.05, 1], rotate: [0, 5, 0, -5, 0] }}
                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                className="w-24 h-24 glass-panel flex items-center justify-center p-6 neon-border-blue mb-2 shadow-[0_0_80px_rgba(0,242,255,0.2)]"
+                className="w-28 h-28 bg-background border-2 border-primary flex items-center justify-center p-6 shadow-[0_0_40px_rgba(0,242,255,0.2)]"
+                style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}
             >
-                <Swords className="w-full h-full text-primary" />
+                <Swords className="w-full h-full text-primary neon-text" />
             </motion.div>
 
             <motion.h1 
                 variants={itemVariants}
-                className="text-7xl md:text-9xl font-black tracking-tighter uppercase italic leading-none"
+                className="text-8xl md:text-[10rem] font-black tracking-tighter uppercase italic leading-none text-white neon-text"
             >
-                BATTLE<span className="neon-text-blue drop-shadow-[0_0_15px_rgba(0,242,255,0.5)]">Q</span>
+                BATTLE<span className="text-primary italic">Q</span>
             </motion.h1>
 
             <motion.p 
                 variants={itemVariants}
-                className="text-lg md:text-2xl text-gray-400 max-w-2xl font-medium tracking-tight leading-relaxed italic"
+                className="text-lg md:text-2xl text-gray-400 max-w-3xl font-medium tracking-tight leading-relaxed font-mono"
             >
-                The behavior-driven <span className="text-white border-b-2 border-primary/40">strategic arena</span>. 
-                Adapt. Alliance. Betray. Earn.
+                &gt; INITIALIZING_BEHAVIOR_PROTOCOL...<br/>
+                <span className="text-white bg-primary/10 px-2 border-l-2 border-primary">ADAPT. ALLIANCE. BETRAY. EARN.</span>
             </motion.p>
         </div>
 
         {/* Action Controls */}
-        <motion.div variants={itemVariants} className="flex flex-col items-center gap-6 w-full">
+        <motion.div variants={itemVariants} className="flex flex-col items-center gap-8 w-full">
             <motion.button
                 onHoverStart={() => setIsHovered(true)}
                 onHoverEnd={() => setIsHovered(false)}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleJoin}
-                className="group relative px-16 py-6 bg-primary text-black font-black uppercase text-xl italic tracking-[.25em] transition-all overflow-hidden"
+                className="group relative px-12 py-6 bg-primary text-black font-black italic uppercase text-2xl tracking-[0.2em] transition-all hover:shadow-[0_0_50px_rgba(0,242,255,0.6)]"
+                style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}
             >
-                {/* Button inner glow and animations */}
-                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-                <span className="relative z-10 flex items-center gap-3">
-                    Deploy Operative
-                    <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500" />
+                <span className="relative flex items-center gap-4">
+                   ENTER_ARENA <ChevronRight className="w-8 h-8 group-hover:translate-x-2 transition-transform" />
                 </span>
-                
-                {/* Cinematic border details */}
-                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-black" />
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-black" />
             </motion.button>
             
             <motion.div className="flex gap-12 text-center opacity-40">

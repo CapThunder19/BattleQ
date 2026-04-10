@@ -38,8 +38,6 @@ const rooms: Record<string, {
   time: number;
   difficulty: number;
   mode: string;
-  alliances: Array<{ p1: string; p2: string }>;
-  zones: Array<{ x: number; y: number; yield: number }>;
   soloRound?: {
     winX: number;
     winY: number;
@@ -50,12 +48,6 @@ const rooms: Record<string, {
 }> = {};
 
 // --- AI ENGINE ---
-const AI_BEHAVIORS = {
-    BEGINNER: 'beginner',
-    AGGRESSIVE: 'aggressive',
-    DECEPTIVE: 'deceptive'
-};
-
 const AI_NAMES = [
     'NovaTactix', 'ShadowCore_9', 'NeonReaver', 'CyberStryker', 
     'VoidSeer', 'AlphaProtocol', 'GhostOperative', 'Zenith_X',
@@ -158,9 +150,7 @@ io.on('connection', (socket: Socket) => {
         status: 'waiting',
         time: 300,
         difficulty: (data.level || 1) > 10 ? 2 : 1,
-        mode: gameMode,
-        alliances: [],
-        zones: []
+        mode: gameMode
       };
     }
 
@@ -259,15 +249,6 @@ io.on('connection', (socket: Socket) => {
     else if (action === 'attack' && targetId) {
       const target = room.players[targetId];
       if (target) {
-        // Check if allied
-        const isAllied = room.alliances.some(a => (a.p1 === socket.id && a.p2 === targetId) || (a.p2 === socket.id && a.p1 === targetId));
-        if (isAllied) {
-            // Betrayal logic
-            room.alliances = room.alliances.filter(a => !((a.p1 === socket.id && a.p2 === targetId) || (a.p2 === socket.id && a.p1 === targetId)));
-            player.reputation -= 30;
-            io.to(roomId).emit('game_event', { type: 'betrayal', from: player.id, to: target.id });
-        }
-
         const damage = player.role === 'attacker' ? 15 : 10;
         target.hp = Math.max(0, target.hp - damage);
         player.score += 25;
@@ -275,39 +256,11 @@ io.on('connection', (socket: Socket) => {
         io.to(roomId).emit('game_event', { type: 'attack', from: player.id, to: target.id, damage });
       }
     }
-    else if (action === 'alliance_propose' && targetId) {
-        const target = room.players[targetId];
-        if (target?.isBot) {
-            // AI Response logic
-            if (Math.random() > 0.6) {
-                setTimeout(() => {
-                    room.alliances.push({ p1: socket.id, p2: targetId });
-                    io.to(roomId).emit('game_event', { type: 'alliance_formed', p1: socket.id, p2: targetId });
-                    io.to(roomId).emit('state_update', { players: room.players, alliances: room.alliances, zones: room.zones });
-                }, 1000);
-            } else {
-                io.to(socket.id).emit('game_event', { type: 'alliance_rejected', from: targetId });
-            }
-        } else {
-            io.to(targetId).emit('alliance_request', { from: socket.id, fromName: player.name });
-        }
-    }
-    else if (action === 'alliance_accept' && targetId) {
-        room.alliances.push({ p1: socket.id, p2: targetId });
-        io.to(roomId).emit('game_event', { type: 'alliance_formed', p1: socket.id, p2: targetId });
-    }
     else if (action === 'snatch') {
-        const mul = room.mode === 'stakes' ? 2 : 1;
-        player.reputation -= (20 * mul);
-        player.score += (50 * mul);
+        player.reputation -= 20;
+        player.score += 50;
         player.lastAction = 'snatch';
-        io.to(roomId).emit('game_event', { type: 'betrayal', from: player.id });
-    }
-    else if (action === 'split') {
-        player.reputation += 10;
-        player.score += 25; 
-        player.lastAction = 'split';
-        io.to(roomId).emit('game_event', { type: 'split', from: player.id });
+        io.to(roomId).emit('game_event', { type: 'snatch', from: player.id });
     }
     else if (action === 'defend') {
         player.lastAction = 'defend';
@@ -315,7 +268,7 @@ io.on('connection', (socket: Socket) => {
         io.to(roomId).emit('game_event', { type: 'defend', from: player.id });
     }
 
-    io.to(roomId).emit('state_update', { players: room.players, alliances: room.alliances });
+    io.to(roomId).emit('state_update', { players: room.players });
   });
 
   socket.on('disconnect', () => {
@@ -344,9 +297,6 @@ function startMatch(roomId: string) {
   // Other modes: original bot-based arena with ticking timer
   const playerCount = Object.keys(room.players).length;
   let targetBots = room.difficulty === 1 ? 4 : 6;
-  
-  if (room.mode === 'stakes') targetBots = 6;
-  if (room.mode === 'alliance') targetBots = 2; // Real players must cooperate to beat less bots
   
   for (let i = 0; i < targetBots - playerCount; i++) {
     const botId = `bot_${Math.random().toString(36).substr(2, 5)}`;
@@ -380,7 +330,7 @@ function startMatch(roomId: string) {
     processAITurn(roomId);
     applyBehavioralShaping(roomId);
 
-    io.to(roomId).emit('tick', { time: room.time, players: room.players, alliances: room.alliances });
+    io.to(roomId).emit('tick', { time: room.time, players: room.players });
 
     if (room.time <= 0) {
       clearInterval(interval);

@@ -2,19 +2,19 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Award, Trophy, TrendingUp, RefreshCw, Rocket, Wallet, ChevronRight, Share2 } from "lucide-react";
+import { Award, Trophy, TrendingUp, RefreshCw, Rocket, Wallet, Share2, Activity } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useGameStore } from "@/store/useGameStore";
+import { useGameStore, Player } from "@/store/useGameStore";
 import { AuthGuard } from "@/components/shared/AuthGuard";
 
 export default function Result() {
   const router = useRouter();
   const { players } = useGameStore();
-  const [ranking, setRanking] = useState<any[]>([]);
+  const [ranking, setRanking] = useState<Player[]>([]);
 
   useEffect(() => {
     // Basic sorting by score for mock leaderboard
-    const sorted = Object.values(players).sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
+    const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
     setRanking(sorted);
   }, [players]);
 
@@ -39,9 +39,10 @@ export default function Result() {
 
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-[#020203] relative overflow-hidden flex flex-col items-center justify-center p-8">
-        {/* Dynamic Mesh Background */}
-        <div className="absolute inset-0 bg-mesh-gradient opacity-20 animate-aurora pointer-events-none" />
+      <main className="min-h-screen bg-[#020203] relative overflow-hidden flex flex-col items-center justify-center p-8 font-mono cyber-grid">
+        {/* Scanline Effect */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-[100] bg-[length:100%_2px,3px_100%]" />
+        
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[150px] rounded-full pointer-events-none" />
 
         <motion.div
@@ -51,52 +52,55 @@ export default function Result() {
            className="max-w-7xl w-full px-8 py-10 relative z-10"
         >
             {/* Header Trophy Section */}
-            <header className="flex flex-col items-center text-center gap-6 mb-16">
+            <header className="flex flex-col items-center text-center gap-6 mb-20">
                 <motion.div 
                     variants={itemVariants}
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-28 h-28 glass-panel neon-border-blue flex items-center justify-center rounded-3xl bg-primary/5 shadow-[0_0_80px_rgba(0,242,255,0.2)]"
+                    animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    className="w-32 h-32 relative flex items-center justify-center bg-background border-2 border-primary shadow-[0_0_40px_rgba(0,242,255,0.3)]"
+                    style={{ clipPath: 'polygon(20% 0, 80% 0, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0 80%, 0 20%)' }}
                 >
-                    <Trophy className="w-14 h-14 text-white drop-shadow-[0_0_10px_rgba(0,242,255,1)]" />
+                    <Trophy className="w-16 h-16 text-primary neon-text" />
                 </motion.div>
                 
                 <div className="space-y-4">
                     <motion.h2 
                         variants={itemVariants}
-                        className="text-7xl md:text-8xl font-black italic uppercase tracking-tighter leading-none"
+                        className="text-7xl md:text-9xl font-black italic uppercase tracking-tighter leading-none text-white neon-text"
                     >
-                        VICTORY <span className="neon-text-blue">SECURED</span>
+                        MISSION <span className="text-primary">COMPLETE</span>
                     </motion.h2>
                     <motion.div 
                         variants={itemVariants}
-                        className="flex items-center justify-center gap-4 text-gray-500 text-xs font-black uppercase tracking-[0.4em]"
+                        className="flex items-center justify-center gap-6 text-gray-500 text-[10px] font-black uppercase tracking-[0.5em]"
                     >
-                        <span>Phase Completion: 100%</span>
-                        <div className="h-3 w-[1px] bg-white/20" />
-                        <span className="text-white">Yield Harvested: 100 BQT</span>
+                        <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-primary rounded-full animate-ping" /> SECTOR_CLEAR</span>
+                        <div className="h-4 w-[1px] bg-white/20" />
+                        <span className="text-white">REWARDS_BUFFERED: 100 BQT</span>
                     </motion.div>
                 </div>
             </header>
 
             {/* Content Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
                 
                 {/* Tactical Performance Card */}
-                <motion.div variants={itemVariants} className="glass-panel p-10 border-white/5 bg-white/[0.02] flex flex-col justify-between overflow-hidden relative group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                         <Award className="w-24 h-24 text-secondary rotate-12" />
-                    </div>
+                <motion.div variants={itemVariants} 
+                    className="bg-background/80 p-10 border-2 border-primary/20 hover:border-primary/50 transition-colors relative group"
+                    style={{ clipPath: 'polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%)' }}
+                >
+                    <div className="absolute top-0 left-0 w-2 h-2 bg-primary" />
+                    <div className="absolute bottom-0 right-0 w-2 h-2 bg-primary" />
                     
                     <div className="relative z-10">
-                        <h3 className="text-xl font-black italic uppercase tracking-widest text-secondary mb-8 flex items-center gap-3">
-                            <Activity className="w-5 h-5" /> Operational Summary
+                        <h3 className="text-xl font-black italic uppercase tracking-widest text-primary mb-10 flex items-center gap-4">
+                            <Activity className="w-6 h-6" /> SYSTEM_LOGS
                         </h3>
                         
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                                <span className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Strategy Impact</span>
-                                <span className="text-xl font-black italic tracking-tighter">+34.8 XP</span>
+                        <div className="space-y-8">
+                            <div className="flex justify-between items-end border-b border-white/10 pb-3">
+                                <span className="text-gray-500 text-[11px] font-black uppercase tracking-widest">TACTICAL_GAIN</span>
+                                <span className="text-2xl font-black italic tracking-tighter text-white">+34.8 XP</span>
                             </div>
                             <div className="flex justify-between items-end border-b border-white/5 pb-2">
                                 <span className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Alliances Formed</span>
@@ -187,7 +191,3 @@ export default function Result() {
   );
 }
 
-// Re-using some concepts to keep the feel consistent
-const Activity = ({ className }: { className: string }) => (
-    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-);

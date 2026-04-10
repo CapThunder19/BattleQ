@@ -35,54 +35,58 @@ export default function Lobby() {
 
     return (
         <AuthGuard>
-            <main className="min-h-screen bg-[#020203] relative overflow-hidden flex flex-col items-center">
-                {/* Immersive Background effects */}
-                <div className="absolute inset-0 bg-mesh-gradient opacity-20 pointer-events-none" />
-                <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
+            <main className="min-h-screen bg-[#020203] relative overflow-hidden flex flex-col items-center font-mono cyber-grid">
+                {/* Scanline Effect */}
+                <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-[100] bg-[length:100%_2px,3px_100%]" />
+                
+                <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-primary/10 via-transparent to-transparent pointer-events-none" />
 
                 <div className="relative z-10 w-full max-w-7xl px-8 py-10 flex flex-col gap-12">
 
                     {/* Premium Navigation Header */}
-                    <header className="flex justify-between items-center glass-panel p-6 border-white/5 rounded-3xl backdrop-blur-xl">
-                        <div className="flex items-center gap-6">
+                    <header className="flex justify-between items-center bg-background/80 p-6 border-2 border-primary/20 backdrop-blur-xl group transition-all duration-500 hover:border-primary/40"
+                            style={{ clipPath: 'polygon(0 0, 98% 0, 100% 15%, 100% 100%, 2% 100%, 0 85%)' }}>
+                        <div className="flex items-center gap-8">
                             <motion.div
-                                whileHover={{ rotate: 180 }}
-                                className="w-14 h-14 glass-panel flex items-center justify-center neon-border-blue bg-primary/5 cursor-pointer"
+                                whileHover={{ rotate: 90, scale: 1.1 }}
+                                className="w-14 h-14 bg-background border-2 border-primary flex items-center justify-center cursor-pointer shadow-[0_0_15px_rgba(0,242,255,0.2)]"
+                                style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 20%)' }}
                             >
                                 <LayoutGrid className="text-primary w-6 h-6" />
                             </motion.div>
                             <div className="flex flex-col">
-                                <div className="flex items-center gap-2">
-                                    <h2 className="text-3xl font-black italic tracking-tighter uppercase">BATTLE<span className="neon-text-blue drop-shadow-[0_0_10px_rgba(0,242,255,0.4)]">Q</span></h2>
-                                    <span className="px-2 py-1 bg-white/5 border border-white/10 rounded-md text-[9px] font-black uppercase text-gray-500 tracking-widest">Main Lobby</span>
+                                <div className="flex items-center gap-3">
+                                    <h2 className="text-4xl font-black italic tracking-tighter uppercase text-white neon-text">BATTLE<span className="text-primary">Q</span></h2>
+                                    <span className="px-3 py-1 bg-primary/20 border border-primary/40 text-[10px] font-black uppercase text-primary tracking-widest animate-pulse">SYSTEM_ACTIVE</span>
                                 </div>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em] mt-0.5">Tactical Command Center</p>
+                                <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.5em] mt-1 ml-1 font-mono">&gt; MAIN_TERMINAL_INPUT</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-10">
                             <div className="hidden md:flex flex-col items-end gap-1">
-                                <span className="text-sm font-black italic uppercase tracking-tight text-white/90">
+                                <span className="text-base font-black italic uppercase tracking-[0.2em] text-white/90 font-mono">
                                     {guestUser}
                                 </span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[9px] text-primary uppercase font-black tracking-widest">Verified Guest</span>
-                                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-ping" />
+                                    <span className="text-[10px] text-primary uppercase font-black tracking-widest opacity-70 font-mono">GUEST_AUTH_OK</span>
+                                    <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
                                 </div>
                             </div>
 
-                            <div className="h-10 w-[1px] bg-white/10" />
+                            <div className="h-10 w-[1px] bg-primary/20" />
 
                             <WalletConnectButton />
 
                             <motion.button
-                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => router.push("/profile")}
-                                className="w-14 h-14 glass-panel hover:neon-border-purple transition-all duration-500 flex items-center justify-center bg-white/5 border-white/10 overflow-hidden group"
+                                className="relative w-14 h-14 bg-background border-2 border-secondary flex items-center justify-center group overflow-hidden shadow-[0_0_15px_rgba(188,19,254,0.2)]"
+                                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%)' }}
                             >
-                                <User className="w-6 h-6 text-white group-hover:text-secondary group-hover:scale-110 transition-all duration-500" />
-                                <div className="absolute inset-0 bg-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="absolute inset-0 bg-secondary/10 group-hover:bg-secondary/20 transition-colors" />
+                                <User className="w-6 h-6 text-secondary group-hover:scale-110 transition-transform" />
                             </motion.button>
                         </div>
                     </header>
@@ -91,12 +95,12 @@ export default function Lobby() {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-col md:flex-row md:items-end justify-between gap-8 py-5"
+                        className="flex flex-col md:flex-row md:items-end justify-between gap-8 py-5 border-l-4 border-primary/50 pl-8 bg-gradient-to-r from-primary/5 to-transparent"
                     >
                         <div className="space-y-4 max-w-2xl">
                             <div className="flex items-center gap-3">
-                                <span className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[10px] font-black text-primary uppercase tracking-[.25em]">Available Sectors</span>
-                                <div className="h-[1px] w-12 bg-white/10" />
+                                <span className="text-[11px] font-black text-primary uppercase tracking-[.4em] font-mono animate-pulse">SCANNING_AVAILABLE_SECTORS...</span>
+                                <div className="h-[1px] w-24 bg-primary/30" />
                             </div>
                             <h3 className="text-6xl md:text-7xl font-black italic tracking-tighter uppercase leading-[0.95]">
                                 Engage Your Next <br />

@@ -7,10 +7,16 @@ import { getGuestUser } from "@/lib/user";
 import { Badge } from "@/components/ui/Badge";
 import { DashboardStat, HistoryRow } from "@/components/profile/ProfileComponents";
 import { AuthGuard } from "@/components/shared/AuthGuard";
+import { useGameStore } from "@/store/useGameStore";
 
 export default function Profile() {
   const router = useRouter();
   const guestUser = getGuestUser();
+  const { solo } = useGameStore();
+
+  const winRatio = solo.history.length > 0 
+    ? ((solo.history.filter(h => h.result === 'SUCCESS').length / solo.history.length) * 100).toFixed(1)
+    : "0.0";
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -98,10 +104,10 @@ export default function Profile() {
                                         <TrendingUp className="w-4 h-4 text-primary opacity-50" />
                                         <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest group-hover:text-white transition-colors">Tactical Win Ratio</span>
                                     </div>
-                                    <span className="text-2xl font-black italic tracking-tighter text-white">72.4%</span>
+                                    <span className="text-2xl font-black italic tracking-tighter text-white">{winRatio}%</span>
                                 </div>
                                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                     <motion.div initial={{ width: 0 }} animate={{ width: "72.4%" }} transition={{ duration: 1, delay: 0.8 }} className="h-full bg-primary" />
+                                     <motion.div initial={{ width: 0 }} animate={{ width: `${winRatio}%` }} transition={{ duration: 1, delay: 0.8 }} className="h-full bg-primary" />
                                 </div>
                             </div>
                             
@@ -109,18 +115,20 @@ export default function Profile() {
                                 <div className="flex justify-between items-end">
                                     <div className="flex items-center gap-2">
                                         <Target className="w-4 h-4 text-secondary opacity-50" />
-                                        <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest group-hover:text-white transition-colors">Precision Combat Index</span>
+                                        <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest group-hover:text-white transition-colors">Max Level Cleared</span>
                                     </div>
-                                    <span className="text-2xl font-black italic tracking-tighter text-white">3.88</span>
+                                    <span className="text-2xl font-black italic tracking-tighter text-white">LVL {solo.unlockedLevel - 1}</span>
                                 </div>
                                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                     <motion.div initial={{ width: 0 }} animate={{ width: "85%" }} transition={{ duration: 1, delay: 1 }} className="h-full bg-secondary" />
+                                     <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min((solo.unlockedLevel - 1) * 10, 100)}%` }} transition={{ duration: 1, delay: 1 }} className="h-full bg-secondary" />
                                 </div>
                             </div>
 
                             <div className="flex justify-between items-center py-6 border-t border-white/5 mt-4">
                                 <span className="text-[10px] text-primary font-black uppercase tracking-[.25em]">Strategic Rating</span>
-                                <span className="px-4 py-1 bg-primary/10 border border-primary/20 rounded-md text-[10px] font-black text-primary uppercase italic">Exceptional-S</span>
+                                <span className="px-4 py-1 bg-primary/10 border border-primary/20 rounded-md text-[10px] font-black text-primary uppercase italic">
+                                    {Number(winRatio) > 70 ? 'Exceptional-S' : Number(winRatio) > 40 ? 'Operative-B' : 'Recruit-C'}
+                                </span>
                             </div>
                         </div>
                     </motion.div>
@@ -137,10 +145,10 @@ export default function Profile() {
                             <Rocket className="w-5 h-5 animate-pulse" /> Core Integration Status
                         </h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
-                          <DashboardStat label="Network Node" value="A7-West-1" />
-                          <DashboardStat label="Sync Latency" value="0.04ms" />
-                          <DashboardStat label="Module Uptime" value="100.0%" />
-                          <DashboardStat label="Tick Rate" value="Elite-64" />
+                          <DashboardStat label="Total Credits" value={`${solo.score} BQT`} />
+                          <DashboardStat label="Current Tier" value={solo.unlockedLevel > 5 ? "Veteran" : "Initiate"} />
+                          <DashboardStat label="Active Missions" value={solo.history.length} />
+                          <DashboardStat label="Status" value="SYNCED" />
                         </div>
                     </motion.div>
 
@@ -148,22 +156,26 @@ export default function Profile() {
                         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-10">
                           <div className="space-y-4">
                             <div className="flex items-center gap-4">
-                                <span className="text-6xl md:text-7xl font-black italic uppercase tracking-tighter text-white">LVL <span className="neon-text-purple">28</span></span>
+                                <span className="text-6xl md:text-7xl font-black italic uppercase tracking-tighter text-white">LVL <span className="neon-text-purple">{solo.unlockedLevel - 1}</span></span>
                                 <div className="h-12 w-[1px] bg-white/10" />
                                 <div className="flex flex-col">
                                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em]">Rank Class</span>
-                                    <span className="text-lg font-black italic tracking-tighter text-secondary uppercase italic">Centurion Prime</span>
+                                    <span className="text-lg font-black italic tracking-tighter text-secondary uppercase italic">
+                                        {solo.unlockedLevel > 10 ? 'Centurion Prime' : solo.unlockedLevel > 5 ? 'Elite Guard' : 'Sector Scout'}
+                                    </span>
                                 </div>
                             </div>
-                            <p className="text-[9px] text-secondary font-black uppercase tracking-[0.5em] animate-pulse">455 XP to Tactical Upgrade Tier-II</p>
+                            <p className="text-[9px] text-secondary font-black uppercase tracking-[0.5em] animate-pulse">Progressing to Level {solo.unlockedLevel}</p>
                           </div>
-                          <span className="text-lg font-black text-gray-400 italic font-sans tracking-tighter">2,545 / 3,000 <span className="text-[10px] text-gray-600 font-black uppercase ml-1">XP Units</span></span>
+                          <span className="text-lg font-black text-gray-400 italic font-sans tracking-tighter">
+                            {solo.score} / { (solo.unlockedLevel) * 200 } <span className="text-[10px] text-gray-600 font-black uppercase ml-1">Credits</span>
+                          </span>
                         </div>
                         
                         <div className="h-6 w-full bg-white/5 rounded-3xl overflow-hidden mb-4 border border-white/10 p-1 shadow-inner relative">
                             <motion.div 
                                 initial={{ width: 0 }}
-                                animate={{ width: "84.8%" }}
+                                animate={{ width: `${Math.min((solo.score / ((solo.unlockedLevel) * 200)) * 100, 100)}%` }}
                                 transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
                                 className="h-full bg-gradient-to-r from-primary via-secondary to-accent rounded-2xl relative"
                             >
@@ -180,10 +192,20 @@ export default function Profile() {
                         </h4>
                         
                         <div className="space-y-6">
-                          <HistoryRow result="Victory-S" reward="+120 BQT" mode="Solo Alpha" date="02h 44m ago" color="green" />
-                          <HistoryRow result="Sync Loss" reward="-50 BQT" mode="Elite Stakes" date="04h 12m ago" color="red" />
-                          <HistoryRow result="Victory-A" reward="+250 BQT" mode="Alliance Pact" date="06h 55m ago" color="green" />
-                          <HistoryRow result="Victory" reward="+180 BQT" mode="Solo Delta" date="Yesterday" color="green" />
+                          {solo.history.length > 0 ? (
+                            solo.history.map((op, i) => (
+                                <HistoryRow 
+                                    key={i}
+                                    result={op.result === 'SUCCESS' ? 'VICTORY' : 'STAKE_LOSS'}
+                                    reward={`${op.reward} BQT`}
+                                    mode={`Sector ${op.level}`}
+                                    date={op.date}
+                                    color={op.result === 'SUCCESS' ? 'green' : 'red'}
+                                />
+                            ))
+                          ) : (
+                            <div className="py-10 text-center text-[10px] text-gray-600 font-black uppercase tracking-[0.4em] italic">No mission data found</div>
+                          )}
                         </div>
                     </motion.div>
                 </div>
