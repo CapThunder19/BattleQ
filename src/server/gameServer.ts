@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import cors from 'cors';
@@ -32,7 +32,7 @@ app.use(
   })
 );
 
-app.get('/healthz', (_req, res) => {
+app.get('/healthz', (_req: Request, res: Response) => {
   res.status(200).json({ ok: true });
 });
 
@@ -271,59 +271,59 @@ function initializeDuelRound(roomId: string) {
 
 // --- AI ENGINE ---
 const AI_NAMES = [
-    'NovaTactix', 'ShadowCore_9', 'NeonReaver', 'CyberStryker', 
-    'VoidSeer', 'AlphaProtocol', 'GhostOperative', 'Zenith_X',
-    'RogueSentinel', 'NexusViper', 'AeroFighter', 'TitanOne'
+  'NovaTactix', 'ShadowCore_9', 'NeonReaver', 'CyberStryker',
+  'VoidSeer', 'AlphaProtocol', 'GhostOperative', 'Zenith_X',
+  'RogueSentinel', 'NexusViper', 'AeroFighter', 'TitanOne'
 ];
 
 function processAITurn(roomId: string) {
-    const room = rooms[roomId];
-    if (!room) return;
+  const room = rooms[roomId];
+  if (!room) return;
 
-    Object.values(room.players).forEach(p => {
-        if (!p.isBot) return;
+  Object.values(room.players).forEach(p => {
+    if (!p.isBot) return;
 
-        // Simple state machine for AI
-        const targets = Object.values(room.players).filter(other => other.id !== p.id);
-        const closest = targets.reduce((prev, curr) => {
-            const d1 = Math.abs(prev.x - p.x) + Math.abs(prev.y - p.y);
-            const d2 = Math.abs(curr.x - p.x) + Math.abs(curr.y - p.y);
-            return d1 < d2 ? prev : curr;
-        }, targets[0]);
+    // Simple state machine for AI
+    const targets = Object.values(room.players).filter(other => other.id !== p.id);
+    const closest = targets.reduce((prev, curr) => {
+      const d1 = Math.abs(prev.x - p.x) + Math.abs(prev.y - p.y);
+      const d2 = Math.abs(curr.x - p.x) + Math.abs(curr.y - p.y);
+      return d1 < d2 ? prev : curr;
+    }, targets[0]);
 
-        if (closest) {
-            const dist = Math.abs(closest.x - p.x) + Math.abs(closest.y - p.y);
-            if (dist <= 1 && Math.random() > 0.3) {
-                // Attack
-                closest.hp = Math.max(0, closest.hp - 10);
-                p.score += 20;
-                p.lastAction = 'attack';
-                io.to(roomId).emit('game_event', { type: 'attack', from: p.id, to: closest.id });
-            } else {
-                // Move towards
-                if (p.x < closest.x) p.x++;
-                else if (p.x > closest.x) p.x--;
-                else if (p.y < closest.y) p.y++;
-                else if (p.y > closest.y) p.y--;
-                p.lastAction = 'move';
-            }
-        }
-    });
+    if (closest) {
+      const dist = Math.abs(closest.x - p.x) + Math.abs(closest.y - p.y);
+      if (dist <= 1 && Math.random() > 0.3) {
+        // Attack
+        closest.hp = Math.max(0, closest.hp - 10);
+        p.score += 20;
+        p.lastAction = 'attack';
+        io.to(roomId).emit('game_event', { type: 'attack', from: p.id, to: closest.id });
+      } else {
+        // Move towards
+        if (p.x < closest.x) p.x++;
+        else if (p.x > closest.x) p.x--;
+        else if (p.y < closest.y) p.y++;
+        else if (p.y > closest.y) p.y--;
+        p.lastAction = 'move';
+      }
+    }
+  });
 }
 
 // --- BEHAVIOR ENGINE (Retention Logic) ---
 function applyBehavioralShaping(roomId: string) {
-    const room = rooms[roomId];
-    if (!room) return;
+  const room = rooms[roomId];
+  if (!room) return;
 
-    // "Near-Win" Placement: If a player is losing, give them a small boost
-    Object.values(room.players).forEach(p => {
-        if (!p.isBot && p.hp < 20 && Math.random() > 0.7) {
-            p.hp += 5; // Survival nudge
-            p.score += 5;
-            p.reputation += 1;
-        }
-    });
+  // "Near-Win" Placement: If a player is losing, give them a small boost
+  Object.values(room.players).forEach(p => {
+    if (!p.isBot && p.hp < 20 && Math.random() > 0.7) {
+      p.hp += 5; // Survival nudge
+      p.score += 5;
+      p.reputation += 1;
+    }
+  });
 }
 
 // --- Solo Round Logic (dealer chooses winning tile and hint) ---
@@ -508,13 +508,13 @@ io.on('connection', (socket: Socket) => {
 
   socket.on('join_match', (data: { name: string; role: string; level?: number; mode?: string }) => {
     const gameMode = data.mode || 'solo';
-    let roomId = Object.keys(rooms).find(r => 
-        Object.keys(rooms[r].players).length < (gameMode === 'duel' ? 2 : 6) && 
-        rooms[r].status === 'waiting' &&
-        rooms[r].mode === gameMode &&
-        (gameMode !== 'duel' || !rooms[r].isPrivate)
+    let roomId = Object.keys(rooms).find(r =>
+      Object.keys(rooms[r].players).length < (gameMode === 'duel' ? 2 : 6) &&
+      rooms[r].status === 'waiting' &&
+      rooms[r].mode === gameMode &&
+      (gameMode !== 'duel' || !rooms[r].isPrivate)
     );
-    
+
     if (!roomId) {
       roomId = `room_${gameMode}_${Date.now()}`;
       rooms[roomId] = {
@@ -530,7 +530,7 @@ io.on('connection', (socket: Socket) => {
 
     rooms[roomId].players[socket.id] = player;
     socket.join(roomId);
-    
+
     emitPlayerJoined(roomId);
 
     if (rooms[roomId].mode === 'solo') {
@@ -675,11 +675,11 @@ io.on('connection', (socket: Socket) => {
           player.score -= wager;
         }
 
-        io.to(roomId).emit('game_event', { 
-          type: 'dealer_result', 
-          outcome, 
-          playerId: player.id, 
-          clickedHint 
+        io.to(roomId).emit('game_event', {
+          type: 'dealer_result',
+          outcome,
+          playerId: player.id,
+          clickedHint
         });
 
         // Start next hint round
@@ -697,12 +697,12 @@ io.on('connection', (socket: Socket) => {
         startSoloRound(roomId);
       }
     }
-    
+
     if (action === 'move' && x !== undefined && y !== undefined) {
       player.x = x;
       player.y = y;
       player.lastAction = 'move';
-    } 
+    }
     else if (action === 'attack' && targetId) {
       const target = room.players[targetId];
       if (target) {
@@ -714,15 +714,15 @@ io.on('connection', (socket: Socket) => {
       }
     }
     else if (action === 'snatch') {
-        player.reputation -= 20;
-        player.score += 50;
-        player.lastAction = 'snatch';
-        io.to(roomId).emit('game_event', { type: 'snatch', from: player.id });
+      player.reputation -= 20;
+      player.score += 50;
+      player.lastAction = 'snatch';
+      io.to(roomId).emit('game_event', { type: 'snatch', from: player.id });
     }
     else if (action === 'defend') {
-        player.lastAction = 'defend';
-        player.reputation += 2;
-        io.to(roomId).emit('game_event', { type: 'defend', from: player.id });
+      player.lastAction = 'defend';
+      player.reputation += 2;
+      io.to(roomId).emit('game_event', { type: 'defend', from: player.id });
     }
 
     io.to(roomId).emit('state_update', { players: room.players });
@@ -816,24 +816,24 @@ function startMatch(roomId: string) {
   // Other modes: original bot-based arena with ticking timer
   const playerCount = Object.keys(room.players).length;
   let targetBots = room.difficulty === 1 ? 4 : 6;
-  
+
   for (let i = 0; i < targetBots - playerCount; i++) {
     const botId = `bot_${Math.random().toString(36).substr(2, 5)}`;
     const randomName = AI_NAMES[Math.floor(Math.random() * AI_NAMES.length)] + `_${Math.floor(Math.random() * 99)}`;
     room.players[botId] = {
-        id: botId,
-        name: randomName,
-        x: Math.floor(Math.random() * 15),
-        y: Math.floor(Math.random() * 15),
-        hp: 100,
-        maxHp: 100,
-        role: 'attacker',
-        isBot: true,
-        score: 0,
-        reputation: 100,
-        lastAction: 'patrol',
-        level: 5,
-        wins: 0
+      id: botId,
+      name: randomName,
+      x: Math.floor(Math.random() * 15),
+      y: Math.floor(Math.random() * 15),
+      hp: 100,
+      maxHp: 100,
+      role: 'attacker',
+      isBot: true,
+      score: 0,
+      reputation: 100,
+      lastAction: 'patrol',
+      level: 5,
+      wins: 0
     };
   }
 
@@ -844,7 +844,7 @@ function startMatch(roomId: string) {
     }
 
     room.time -= 1;
-    
+
     // Engine ticks
     processAITurn(roomId);
     applyBehavioralShaping(roomId);
@@ -854,8 +854,8 @@ function startMatch(roomId: string) {
     if (room.time <= 0) {
       clearInterval(interval);
       room.status = 'ended';
-      io.to(roomId).emit('match_ended', { 
-        leaderboard: Object.values(room.players).sort((a,b) => b.score - a.score) 
+      io.to(roomId).emit('match_ended', {
+        leaderboard: Object.values(room.players).sort((a, b) => b.score - a.score)
       });
       // Cleanup room after 1 minute
       setTimeout(() => delete rooms[roomId], 60000);
