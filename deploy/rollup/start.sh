@@ -91,6 +91,7 @@ exec minitiad start \
   --home "$MINITIA_HOME" \
   --json-rpc.enable \
   --json-rpc.address "0.0.0.0:8545" \
-  --json-rpc.ws-address "0.0.0.0:8546" \
-  --json-rpc.api "eth,net,web3,txpool" \
+  --json-rpc.address-ws "0.0.0.0:8546" \
+  --json-rpc.enable-ws \
+  --json-rpc.apis "eth,net,web3,txpool" \
   2>&1
