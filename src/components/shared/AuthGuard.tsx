@@ -81,27 +81,80 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       const token = getAuthToken();
       const sessionAddress = getAuthedWallet();
 
+      // ── Try to resume an existing session ─────────────────────
       if (
         token &&
         sessionAddress?.toLowerCase() === activeAddress.toLowerCase()
       ) {
-        const sessionResponse = await fetch("/api/auth/session", {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        try {
+          const sessionResponse = await fetch("/api/auth/session", {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-        if (sessionResponse.ok) {
-          setWalletUser(activeAddress);
-          setStatus("ready");
-          return;
+          if (sessionResponse.ok) {
+            setWalletUser(activeAddress);
+            setStatus("ready");
+            return;
+          }
+        } catch {
+          // Network error — fall through to fresh auth.
+          clearAuthSession();
         }
       }
 
-      const nonceResponse = await fetch("/api/auth/nonce", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: activeAddress }),
-      });
+      // ── InterwovenKit path: simplified connect ────────────────
+      // InterwovenKit already verifies wallet ownership, so we
+      // skip the nonce/sign/verify flow and issue a session directly.
+      if (iwkConnected && iwkHexAddress) {
+        let connectResponse: Response;
+        try {
+          connectResponse = await fetch("/api/auth/connect", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ address: activeAddress }),
+          });
+        } catch {
+          throw new Error(
+            "Unable to reach the auth server. Check your connection.",
+          );
+        }
+
+        const connectPayload = (await connectResponse.json()) as {
+          token?: string;
+          address?: string;
+          error?: string;
+        };
+
+        if (
+          !connectResponse.ok ||
+          !connectPayload.token ||
+          !connectPayload.address
+        ) {
+          throw new Error(
+            connectPayload.error ?? "Failed to create session.",
+          );
+        }
+
+        setAuthSession(connectPayload.token, connectPayload.address);
+        setWalletUser(connectPayload.address);
+        setStatus("ready");
+        return;
+      }
+
+      // ── Fallback: EVM signature flow (MetaMask, etc.) ─────────
+      let nonceResponse: Response;
+      try {
+        nonceResponse = await fetch("/api/auth/nonce", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: activeAddress }),
+        });
+      } catch {
+        throw new Error(
+          "Unable to reach the auth server. Check your connection or disable browser extensions that intercept network requests.",
+        );
+      }
 
       const noncePayload = (await nonceResponse.json()) as {
         nonce?: string;
@@ -114,15 +167,22 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       const message = createAuthMessage(activeAddress, noncePayload.nonce);
       const signature = await signMessageAsync({ message });
 
-      const verifyResponse = await fetch("/api/auth/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          address: activeAddress,
-          nonce: noncePayload.nonce,
-          signature,
-        }),
-      });
+      let verifyResponse: Response;
+      try {
+        verifyResponse = await fetch("/api/auth/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            address: activeAddress,
+            nonce: noncePayload.nonce,
+            signature,
+          }),
+        });
+      } catch {
+        throw new Error(
+          "Unable to reach the auth server during verification. Check your connection.",
+        );
+      }
 
       const verifyPayload = (await verifyResponse.json()) as {
         token?: string;
@@ -150,7 +210,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         error instanceof Error ? error.message : "Authentication failed.",
       );
     }
-  }, [activeAddress, anyConnected, signMessageAsync]);
+  }, [activeAddress, anyConnected, iwkConnected, iwkHexAddress, signMessageAsync]);
 
   useEffect(() => {
     void authenticateWallet();

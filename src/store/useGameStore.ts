@@ -89,7 +89,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     score: 0,
     history: [],
     withdrawalUnlocked: false,
-    stake: 50,
+    stake: 0.05,
     pendingSettlement: null,
   },
 
@@ -204,12 +204,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     if (x === solo.treasurePos?.x && y === solo.treasurePos?.y) {
       const isFixedGrid = solo.level > 3;
-      const practiceStakes = [5, 10, 15];
-      const stakeAmount = isFixedGrid ? solo.stake : (practiceStakes[solo.level - 1] || solo.level * 5);
+      const practiceStakes = [0.001, 0.005, 0.01];
+      const stakeAmount = isFixedGrid ? solo.stake : (practiceStakes[solo.level - 1] || solo.level * 0.005);
       
       // Dynamic scaling: Reward = Stake * Multiplier
       const multiplier = isFixedGrid ? (1.5 + (newRevealed.size * 0.1)) : (1.5 + (solo.level * 0.2));
-      const winAmount = Math.floor(stakeAmount * multiplier);
+      const winAmount = parseFloat((stakeAmount * multiplier).toFixed(6));
       
       set((state) => {
         const nextUnlockedLevel = Math.max(state.solo.unlockedLevel, solo.level + 1);
@@ -242,8 +242,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         };
       });
     } else if (nextMoves <= 0) {
-      const practiceStakes = [5, 10, 15];
-      const stakeAmount = solo.level > 3 ? solo.stake : (practiceStakes[solo.level - 1] || solo.level * 5);
+      const practiceStakes = [0.001, 0.005, 0.01];
+      const stakeAmount = solo.level > 3 ? solo.stake : (practiceStakes[solo.level - 1] || solo.level * 0.005);
       set((state) => ({
         solo: {
           ...state.solo,
@@ -287,7 +287,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       score: 0,
       gameStatus: 'selecting',
       withdrawalUnlocked: false,
-      stake: 50,
+      stake: 0.05,
       pendingSettlement: null,
     }
   })),

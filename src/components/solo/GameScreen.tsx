@@ -15,8 +15,8 @@ export const GameScreen = () => {
     const processedSettlementsRef = React.useRef<Set<number>>(new Set());
     
     const isElite = solo.level > 3;
-    const practiceStakes = [5, 10, 15];
-    const currentStake = isElite ? solo.stake : (practiceStakes[solo.level - 1] || solo.level * 5);
+    const practiceStakes = [0.001, 0.005, 0.01];
+    const currentStake = isElite ? solo.stake : (practiceStakes[solo.level - 1] || solo.level * 0.005);
 
     const processSettlement = React.useCallback(async () => {
         const pending = solo.pendingSettlement;
@@ -67,8 +67,8 @@ export const GameScreen = () => {
                 <div className="h-2 w-full bg-primary/20 mb-6" />
                 <p className="text-xl text-white mb-2 tracking-[0.3em] font-black uppercase">{isElite ? 'ELITE_ARENA_SECURED' : `TREASURE_SECURED // LVL_${solo.level}_CLEAR`}</p>
                 <div className="flex flex-col mb-10">
-                    <span className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em]">STAKE: {currentStake} BQT</span>
-                    <p className="text-4xl text-primary font-black tracking-widest">+ {solo.score} CREDITS</p>
+                    <span className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em]">STAKE: {currentStake} INIT</span>
+                    <p className="text-4xl text-primary font-black tracking-widest">+ {solo.score} INIT</p>
                     {isElite && (
                         <span className="text-[11px] text-primary/60 font-black uppercase mt-2">
                             REWARD SCALED BY {Math.max(1, solo.revealedTiles.size)}X TILE MULTIPLIER
@@ -213,7 +213,7 @@ export const GameScreen = () => {
                         <div className="hidden sm:flex items-center gap-6 bg-white/5 px-6 py-2 border-x border-white/10" style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}>
                             <StatItem icon={<Target className="w-5 h-5 text-primary"/>} value={`${solo.gridSize}x${solo.gridSize}`} label="GRID" />
                             <div className="w-[1px] h-6 bg-white/10" />
-                            <StatItem icon={<Zap className="w-5 h-5 text-accent"/>} value={`${solo.score}`} label="CREDITS" />
+                            <StatItem icon={<Zap className="w-5 h-5 text-accent"/>} value={`${solo.score}`} label="INIT" />
                         </div>
                     </div>
                 </div>

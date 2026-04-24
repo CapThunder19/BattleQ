@@ -105,7 +105,7 @@ export default function Profile() {
                             <div className="space-y-4 pt-2">
                                 <TacticalSkill label="Win Ratio" level={Math.floor(Number(winRatio) / 10)} color="primary" />
                                 <TacticalSkill label="Sector Clearance" level={Math.min(solo.unlockedLevel, 10)} color="secondary" />
-                                <TacticalSkill label="Risk Level" level={solo.stake > 100 ? 8 : 4} color="accent" />
+                                <TacticalSkill label="Risk Level" level={solo.stake > 0.1 ? 8 : 4} color="accent" />
                             </div>
                         </div>
                     </motion.div>
@@ -114,7 +114,7 @@ export default function Profile() {
                 {/* Right Side: Command Dashboard */}
                 <div className="lg:col-span-8 flex flex-col gap-4 overflow-hidden">
                     <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
-                        <DashboardStat icon={Coins} label="Credits" value={`${solo.score} BQT`} />
+                        <DashboardStat icon={Coins} label="Balance" value={`${solo.score} INIT`} />
                         <DashboardStat icon={Target} label="Tier" value={solo.unlockedLevel > 3 ? "Elite" : "Scout"} />
                         <DashboardStat icon={Lock} label="Access" value={solo.withdrawalUnlocked ? "FULL" : "REST"} />
                         <DashboardStat icon={Zap} label="System" value="SYNC" />
@@ -158,7 +158,7 @@ export default function Profile() {
                                 <HistoryRow 
                                     key={i}
                                     result={op.result === 'SUCCESS' ? 'VIC' : 'LOSS'}
-                                    reward={`${op.reward} BQT`}
+                                    reward={`${op.reward} INIT`}
                                     mode={`Sector ${op.level} Scan`}
                                     date={op.date}
                                     color={op.result === 'SUCCESS' ? 'green' : 'red'}

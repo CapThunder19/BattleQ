@@ -72,9 +72,9 @@ export function MultiplayerGameScreen() {
   const [waitingCount, setWaitingCount] = useState(0);
   const [didCopyCode, setDidCopyCode] = useState(false);
 
-  const STAKE_MIN = 50;
-  const STAKE_MAX = 200;
-  const STAKE_STEP = 10;
+  const STAKE_MIN = 0.01;
+  const STAKE_MAX = 1.0;
+  const STAKE_STEP = 0.01;
 
   type PendingJoinIntent =
     | { type: "random" }
@@ -500,8 +500,8 @@ export function MultiplayerGameScreen() {
                         value={Number.isFinite(stakeAmount) ? stakeAmount : STAKE_MIN}
                         onChange={(e) => {
                           if (stakeLocked) return;
-                          const raw = e.target.value.replace(/\D/g, "");
-                          const next = raw ? parseInt(raw, 10) : STAKE_MIN;
+                          const raw = e.target.value.replace(/[^0-9.]/g, "");
+                          const next = raw ? parseFloat(raw) : STAKE_MIN;
                           setStakeAmount(clampStake(next));
                         }}
                         inputMode="numeric"
@@ -509,7 +509,7 @@ export function MultiplayerGameScreen() {
                         disabled={stakeLocked}
                       />
                     )}
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/50">BQT</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/50">INIT</span>
                   </div>
 
                   {!stakeLocked && (
@@ -561,7 +561,7 @@ export function MultiplayerGameScreen() {
 
               {stakeLocked ? (
                 <p className="text-[11px] text-white/45">
-                  The room creator has set the stake amount to {stakeAmount} BQT.
+                  The room creator has set the stake amount to {stakeAmount} INIT.
                 </p>
               ) : (
                 <p className="text-[11px] text-white/45">
@@ -588,12 +588,12 @@ export function MultiplayerGameScreen() {
                       </button>
                     </div>
                     <p className="text-[11px] text-white/50 mt-2">Share this code to invite a friend.</p>
-                    <p className="text-[11px] text-white/60 mt-1">Stake: {selectedStake} BQT</p>
+                    <p className="text-[11px] text-white/60 mt-1">Stake: {selectedStake} INIT</p>
                   </div>
                 ) : (
                   <div className="mt-2">
                     <p className="text-[11px] text-white/50">Random matchmaking…</p>
-                    <p className="text-[11px] text-white/60 mt-1">Stake: {selectedStake} BQT</p>
+                    <p className="text-[11px] text-white/60 mt-1">Stake: {selectedStake} INIT</p>
                   </div>
                 )}
                 <p className="text-[11px] text-white/60 mt-3">Players in room: {Math.max(1, waitingCount)}/2</p>
@@ -688,8 +688,8 @@ export function MultiplayerGameScreen() {
           <div className="text-right">
               <p id="stats-info" className="text-base md:text-lg font-extrabold text-primary">{statusText}</p>
               <div className="mt-1 text-[11px] text-white/60">
-                <span className="inline-block mr-4">Bet: {duelState?.betAmount ?? selectedStake} BQT</span>
-                <span className="inline-block mr-4">Pot: {duelState?.totalPot ?? selectedStake * 2} BQT</span>
+                <span className="inline-block mr-4">Bet: {duelState?.betAmount ?? selectedStake} INIT</span>
+                <span className="inline-block mr-4">Pot: {duelState?.totalPot ?? selectedStake * 2} INIT</span>
                 <span className="inline-block">Peek: {myPeekCharges}</span>
               </div>
           </div>
@@ -870,12 +870,12 @@ export function MultiplayerGameScreen() {
 
               <div className="mt-4 grid gap-2">
                 <p className={`text-sm uppercase tracking-widest ${isMeWinner ? "text-emerald-300" : "text-red-300"}`}>
-                  {isMeWinner ? `You won +${duelState.totalPot} BQT` : `You lost ${duelState.betAmount} BQT`}
+                  {isMeWinner ? `You won +${duelState.totalPot} INIT` : `You lost ${duelState.betAmount} INIT`}
                 </p>
                 <p className="text-sm uppercase tracking-widest text-white/70">
-                  Stake: {duelState.betAmount} BQT • Pot: {duelState.totalPot} BQT
+                  Stake: {duelState.betAmount} INIT • Pot: {duelState.totalPot} INIT
                 </p>
-                <p className="text-[11px] text-white/55">Winner receives {duelState.totalPot} BQT pot</p>
+                <p className="text-[11px] text-white/55">Winner receives {duelState.totalPot} INIT pot</p>
               </div>
 
               <button

@@ -165,7 +165,7 @@ export default function Onboarding() {
           <FeatureCard 
             icon={<Target className="w-7 h-7 text-primary" />}
             title="Sovereign Engine"
-            desc="Master the predictive behavior patterns of Solo Sectors. Clear high-density grids to harvest initial BQT reserves."
+            desc="Master the predictive behavior patterns of Solo Sectors. Clear high-density grids to harvest initial INIT reserves."
           />
           <FeatureCard 
             icon={<Swords className="w-7 h-7 text-secondary" />}

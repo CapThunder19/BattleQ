@@ -84,7 +84,7 @@ export function RoomCard({ title, icon, entryFee, avgReward, stats, variant, onC
               <span className="text-[10px] text-gray-500 uppercase font-black tracking-[0.2em] font-mono">STAKE_REQUIRED</span>
             </div>
             <span className="text-4xl font-black italic tracking-tighter text-white font-mono leading-none">
-              {entryFee} <span className="text-[12px] font-normal opacity-50 not-italic uppercase tracking-widest ml-1">BQT</span>
+              {entryFee} <span className="text-[12px] font-normal opacity-50 not-italic uppercase tracking-widest ml-1">INIT</span>
             </span>
           </div>
         </div>
@@ -100,7 +100,7 @@ export function RoomCard({ title, icon, entryFee, avgReward, stats, variant, onC
           <div className="flex items-center gap-3 py-1.5 px-4 bg-white/5 border-l-2 border-white/20 w-fit backdrop-blur-sm">
             <TrendingUp className={`w-4 h-4 ${colorStyles.text}`} />
             <span className="text-[11px] text-gray-300 font-bold uppercase tracking-widest font-mono">
-              EST_YIELD: <span className="text-white">+{avgReward} Pts</span>
+              EST_YIELD: <span className="text-white">+{avgReward} INIT</span>
             </span>
           </div>
 

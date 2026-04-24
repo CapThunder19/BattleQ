@@ -141,8 +141,8 @@ export default function Lobby() {
                             <RoomCard
                                 title="Solo"
                                 icon={<User className="w-10 h-10" />}
-                                entryFee={5}
-                                avgReward={12}
+                                entryFee={0.005}
+                                avgReward={0.012}
                                 stats="Prediction arena against the Initia dealer."
                                 variant="blue"
                                 onClick={() => router.push("/arena?mode=solo")}
@@ -153,8 +153,8 @@ export default function Lobby() {
                             <RoomCard
                                 title="Duel"
                                 icon={<Users className="w-10 h-10" />}
-                                entryFee={10}
-                                avgReward={20}
+                                entryFee={0.01}
+                                avgReward={0.02}
                                 stats="2 players, same chest grid, turn-based real-time combat."
                                 variant="pink"
                                 onClick={() => router.push("/arena?mode=duel")}

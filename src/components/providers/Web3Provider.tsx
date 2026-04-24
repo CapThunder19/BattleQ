@@ -43,7 +43,7 @@ export function Web3Provider({ children }: PropsWithChildren) {
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig}>
         <InterwovenKitProvider
-          defaultChainId={rollupConfig.chainId}
+          {...TESTNET}
           theme="dark"
           enableAutoSign={true}
         >

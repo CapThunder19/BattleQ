@@ -102,11 +102,11 @@ export const StakeConfirmation: React.FC<StakeConfirmationProps> = ({
                                             pattern="[0-9]*"
                                             value={stakeAmount === 0 ? '' : stakeAmount}
                                             onChange={(e) => {
-                                                const val = e.target.value.replace(/\D/g, '');
-                                                onStakeChange(val === '' ? 0 : parseInt(val));
+                                                const val = e.target.value.replace(/[^0-9.]/g, '');
+                                                onStakeChange(val === '' ? 0 : parseFloat(val));
                                             }}
                                             onBlur={() => {
-                                                if (stakeAmount < 1) onStakeChange(1);
+                                                if (stakeAmount < 0.001) onStakeChange(0.001);
                                             }}
                                             className="bg-transparent text-5xl font-black text-white tracking-tighter w-40 focus:outline-none border-b-2 border-primary/50 transition-all hover:border-white/10"
                                         />
@@ -115,7 +115,7 @@ export const StakeConfirmation: React.FC<StakeConfirmationProps> = ({
                                 ) : (
                                     <div className="flex items-baseline gap-3">
                                         <span className="text-5xl font-black text-white tracking-tighter">{stakeAmount}</span>
-                                        <span className="text-xs font-black text-primary tracking-widest uppercase">CREDITS</span>
+                                        <span className="text-xs font-black text-primary tracking-widest uppercase">INIT</span>
                                     </div>
                                 )}
                             </div>
@@ -123,14 +123,14 @@ export const StakeConfirmation: React.FC<StakeConfirmationProps> = ({
                             {onStakeChange && (
                                 <div className="flex items-center gap-2 bg-black/40 border border-white/10 p-1 rounded-lg">
                                     <button 
-                                        onClick={() => onStakeChange(Math.max(10, stakeAmount - 10))}
+                                        onClick={() => onStakeChange(Math.max(0.001, parseFloat((stakeAmount - 0.01).toFixed(6))))}
                                         className="p-3 hover:bg-white/10 transition-colors text-primary rounded-md active:scale-90"
                                     >
                                         <Minus className="w-5 h-5" />
                                     </button>
                                     <div className="w-[1px] h-6 bg-white/10" />
                                     <button 
-                                        onClick={() => onStakeChange(stakeAmount + 10)}
+                                        onClick={() => onStakeChange(parseFloat((stakeAmount + 0.01).toFixed(6)))}
                                         className="p-3 hover:bg-white/10 transition-colors text-primary rounded-md active:scale-90"
                                     >
                                         <Plus className="w-5 h-5" />
@@ -147,7 +147,7 @@ export const StakeConfirmation: React.FC<StakeConfirmationProps> = ({
                         <span className="text-[10px] text-primary/60 font-bold uppercase tracking-[0.2em] mb-2 block">POTENTIAL_YIELD</span>
                         <div className="flex items-baseline gap-3">
                             <span className="text-5xl font-black text-primary tracking-tighter">~{potentialReward}</span>
-                            <span className="text-xs font-black text-primary tracking-widest uppercase">CREDITS</span>
+                            <span className="text-xs font-black text-primary tracking-widest uppercase">INIT</span>
                         </div>
                     </div>
                 </div>

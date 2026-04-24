@@ -46,3 +46,6 @@ next-env.d.ts
 
 # build logs
 build-error.log
+
+# Large rollup binaries (downloaded at Docker build time)
+deploy/rollup/context/minitiad

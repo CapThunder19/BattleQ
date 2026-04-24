@@ -56,7 +56,7 @@ export const rollupConfig: RollupRuntimeConfig = {
     readEnv("JSON_RPC_WS", "ws://localhost:8546"),
   ),
   grpc: readEnv("NEXT_PUBLIC_ROLLUP_GRPC", readEnv("GRPC", "http://localhost:9090")),
-  evmChainId: Number(readEnv("NEXT_PUBLIC_ROLLUP_EVM_CHAIN_ID", "31337")),
+  evmChainId: Number(readEnv("NEXT_PUBLIC_ROLLUP_EVM_CHAIN_ID", "94217")),
   nativeSymbol: readEnv("NEXT_PUBLIC_ROLLUP_NATIVE_SYMBOL", "INIT"),
   chainName: readEnv("NEXT_PUBLIC_ROLLUP_CHAIN_NAME", "Initia Testnet"),
   treasuryAddress: readEnv("NEXT_PUBLIC_BATTLEQ_TREASURY", defaultTreasury) as `0x${string}`,
