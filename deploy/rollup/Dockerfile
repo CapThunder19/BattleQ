@@ -42,32 +42,19 @@ RUN ARCH=$(dpkg --print-architecture) && \
 # This avoids committing the 100MB+ binary to Git.
 # The binary is built from: https://github.com/initia-labs/minievm
 ARG MINIEVM_VERSION=v1.2.15
-RUN ARCH=$(dpkg --print-architecture) && \
+RUN set -e && \
+    ARCH=$(dpkg --print-architecture) && \
     echo "Downloading minitiad ${MINIEVM_VERSION} for ${ARCH}..." && \
-    mkdir -p /tmp/minitiad-extract && \
     if [ "$ARCH" = "amd64" ]; then \
-      wget -qO /tmp/minitiad.tar.gz \
-        "https://github.com/initia-labs/minievm/releases/download/${MINIEVM_VERSION}/minievm_${MINIEVM_VERSION}_Linux_x86_64.tar.gz" && \
-      tar -xzf /tmp/minitiad.tar.gz -C /tmp/minitiad-extract; \
-    elif [ "$ARCH" = "arm64" ]; then \
-      wget -qO /tmp/minitiad.tar.gz \
-        "https://github.com/initia-labs/minievm/releases/download/${MINIEVM_VERSION}/minievm_${MINIEVM_VERSION}_Linux_aarch64.tar.gz" && \
-      tar -xzf /tmp/minitiad.tar.gz -C /tmp/minitiad-extract; \
+      URL="https://github.com/initia-labs/minievm/releases/download/${MINIEVM_VERSION}/minievm_${MINIEVM_VERSION}_Linux_x86_64.tar.gz"; \
+    else \
+      URL="https://github.com/initia-labs/minievm/releases/download/${MINIEVM_VERSION}/minievm_${MINIEVM_VERSION}_Linux_aarch64.tar.gz"; \
     fi && \
-    # Find the minitiad binary inside the extracted archive
-    if [ -f /tmp/minitiad-extract/minitiad ]; then \
-      cp /tmp/minitiad-extract/minitiad /usr/local/bin/minitiad; \
-    elif [ -f /tmp/minitiad-extract/minievm ]; then \
-      cp /tmp/minitiad-extract/minievm /usr/local/bin/minitiad; \
-    elif ls /tmp/minitiad-extract/minit* 1>/dev/null 2>&1; then \
-      cp /tmp/minitiad-extract/minit* /usr/local/bin/minitiad; \
-    fi && \
-    rm -rf /tmp/minitiad.tar.gz /tmp/minitiad-extract && \
-    # Fallback: if the release download didn't work, use the local copy
-    if [ ! -f /usr/local/bin/minitiad ] && [ -f /tmp/context-minitiad ]; then \
-      cp /tmp/context-minitiad /usr/local/bin/minitiad; \
-    fi && \
-    chmod +x /usr/local/bin/minitiad
+    wget -qO /tmp/minitiad.tar.gz "$URL" && \
+    tar -xzf /tmp/minitiad.tar.gz -C /usr/local/bin minitiad && \
+    rm -f /tmp/minitiad.tar.gz && \
+    chmod +x /usr/local/bin/minitiad && \
+    echo "minitiad installed: $(minitiad version 2>/dev/null || echo 'ok')"
 
 # ── Fallback: copy local minitiad if provided ────────────────
 # If the GitHub release download fails, provide it in context/
