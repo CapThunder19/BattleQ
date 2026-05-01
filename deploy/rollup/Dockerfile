@@ -22,9 +22,7 @@ RUN ARCH=$(dpkg --print-architecture) && \
     rm /tmp/caddy.tar.gz && \
     chmod +x /usr/local/bin/caddy
 
-# ── Download minitiad binary at build time ───────────────────
-# This avoids committing the 100MB+ binary to Git.
-# The binary is built from: https://github.com/initia-labs/minievm
+# ── Download minitiad binary ─────────────────────────────────
 ARG MINIEVM_VERSION=v1.2.15
 RUN set -e && \
     ARCH=$(dpkg --print-architecture) && \
@@ -38,35 +36,32 @@ RUN set -e && \
     tar -xzf /tmp/minitiad.tar.gz -C /usr/local/bin minitiad && \
     rm -f /tmp/minitiad.tar.gz && \
     chmod +x /usr/local/bin/minitiad && \
-    echo "minitiad installed: $(minitiad version 2>/dev/null || echo 'ok')"
+    echo "minitiad installed"
 
-# ── Fallback: copy local minitiad if provided ────────────────
-# If the GitHub release download fails, provide it in context/
-COPY context/minitiad* /tmp/fallback-minitiad
+# ── Fallback binary (optional) ───────────────────────────────
+COPY deploy/rollup/context/minitiad* /tmp/fallback-minitiad
 RUN if [ ! -x /usr/local/bin/minitiad ] && [ -f /tmp/fallback-minitiad ]; then \
       cp /tmp/fallback-minitiad /usr/local/bin/minitiad && \
       chmod +x /usr/local/bin/minitiad; \
     fi && \
     rm -f /tmp/fallback-minitiad
 
-# ── Copy chain config + data ─────────────────────────────────
-COPY context/.minitia /root/.minitia
+# ── Copy chain config ────────────────────────────────────────
+COPY deploy/rollup/context/.minitia /root/.minitia
 
-# ── Copy proxy & startup configs ─────────────────────────────
-COPY Caddyfile /etc/caddy/Caddyfile
-COPY start.sh /start.sh
+# ── Copy configs ─────────────────────────────────────────────
+COPY deploy/rollup/Caddyfile /etc/caddy/Caddyfile
+COPY deploy/rollup/start.sh /start.sh
+
 RUN chmod +x /start.sh
 
-# ── Railway injects PORT at runtime (typically 8080) ─────────
+# ── Environment ──────────────────────────────────────────────
 ENV PORT=8080
 ENV MINITIA_HOME=/root/.minitia
 
-# ── Health check ─────────────────────────────────────────────
+# ── Health check (fixed) ─────────────────────────────────────
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -sf http://localhost:8545 -X POST \
-        -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-        || exit 1
+    CMD curl -f http://localhost:8080 || exit 1
 
 # ── Run ──────────────────────────────────────────────────────
 CMD ["/start.sh"]
