@@ -1,19 +1,3 @@
-# ══════════════════════════════════════════════════════════════
-#  BattleQ Rollup Node — Docker Image (Railway Deployment)
-# ══════════════════════════════════════════════════════════════
-#
-# This image downloads the minitiad binary at build time from
-# the official Initia release, bundles chain config, and uses
-# a Caddy reverse proxy so all rollup ports are served through
-# a single HTTPS endpoint on Railway.
-#
-# The minitiad binary is NOT committed to Git — it's fetched
-# during Docker build to avoid GitHub's 100MB file size limit.
-#
-# Build:  docker build -t battleq-rollup -f deploy/rollup/Dockerfile deploy/rollup/
-# Run:    docker run -e PORT=8080 battleq-rollup
-# ══════════════════════════════════════════════════════════════
-
 FROM ubuntu:22.04
 
 LABEL maintainer="BattleQ"
