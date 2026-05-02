@@ -42,6 +42,16 @@
 *   **Animation Engine**: Complex 3D CSS transforms and SVG-based glitch filters.
 *   **Icons**: [Lucide React](https://lucide.dev/).
 *   **Backend**: Node.js & Socket.io (for future multiplayer scalability).
+ 
+## ✨ Latest Features
+
+- **Real-time Duel Mode (Multiplayer)** — Shared chest grid duels with turn-based reveals, room codes, matchmaking, stake locking, and pot payouts.
+- **Stake & Betting System** — Create or join rooms with BQT stakes (configurable between 50–200); both players must confirm the room stake before matches start.
+- **Magnifier (Peek) Mechanic** — Scan a chest without opening it using magnifier charges earned in-game.
+- **Solo Engine Enhancements** — Dynamic grid scaling, fake treasures, trap tiles, adaptive moves, practice stakes for early levels, and per-session run history with rewards/penalties.
+- **AI & Behavior Engines** — Server-side bots and behavioral shaping (near-win nudges) to improve pacing and retention.
+- **Dealer Solo Rounds** — Dealer-driven solo hint rounds with wagered actions and immediate dealer responses via sockets.
+- **Dedicated Game Server** — Separate Express + Socket.IO engine (default socket port `3001`) handling duel/solo modes, confirmations, timers, and cleanup.
 
 ---
 
@@ -59,6 +69,54 @@ Start the Next.js development server:
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) to begin your mission.
+
+---
+
+## 🧪 Development
+
+- **Install**: Clone the repo and install dependencies:
+```bash
+git clone <repo-url>
+cd BattleQ
+npm install
+```
+
+- **Environment**: Create a file named `.env.local` in the project root and set the client socket URL:
+```
+NEXT_PUBLIC_SOCKET_URL=http://127.0.0.1:3001
+```
+The frontend reads `NEXT_PUBLIC_SOCKET_URL` at runtime to connect to the game server.
+
+**Optional server environment variables** (used by the standalone game server):
+```
+# Socket server port (defaults to 3001)
+SOCKET_PORT=3001
+
+# CORS origins for Socket.IO (comma-separated or `*`)
+SOCKET_CORS_ORIGIN=http://localhost:3000
+
+# Alternative variable names the server checks
+PORT=3001
+CORS_ORIGIN=http://localhost:3000
+```
+Set `NEXT_PUBLIC_SOCKET_URL` to the public address where the socket server is reachable (for local dev `http://127.0.0.1:3001`).
+
+- **Run (development)**: Start both the Next.js app and the game server concurrently:
+```bash
+npm run dev
+```
+This runs Next.js on port `3000` and the local game server (via `tsx`) on port `3001` as defined by the `dev:next` and `dev:server` scripts in `package.json`.
+
+- **Run server only (dev)**:
+```bash
+npm run dev:server
+```
+
+- **Build & Start (production-like)**:
+```bash
+npm run build:all
+npm run start
+```
 
 ---
 
