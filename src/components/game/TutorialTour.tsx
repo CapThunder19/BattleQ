@@ -22,7 +22,7 @@ const TOUR_STEPS: TourStep[] = [
     {
         targetId: "match-id-info",
         title: "Mission Coordinates",
-        content: "This is your unique Match ID. All actions on this grid are synchronized in real-time across the Initia network.",
+        content: "This is your unique Match ID. All actions on this grid are synchronized in real-time for every connected player.",
         icon: <Zap className="w-6 h-6 text-primary" />,
         position: "bottom"
     },

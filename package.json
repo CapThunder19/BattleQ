@@ -16,11 +16,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@initia/icons-react": "^2.1.0",
-    "@initia/initia.js": "^1.1.0",
-    "@initia/interwovenkit-react": "^2.5.1",
-    "@initia/utils": "^2.0.0",
-    "@metamask/connect-evm": "^0.9.1",
+    
     "@tanstack/react-query": "^5.96.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -38,8 +34,7 @@
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.5.0",
     "typescript": "^5",
-    "viem": "^2.47.10",
-    "wagmi": "2.17.2",
+    
     "zustand": "^5.0.12"
   },
   "devDependencies": {

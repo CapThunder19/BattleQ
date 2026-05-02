@@ -3,7 +3,32 @@
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
+const getSocketUrl = () => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1";
+    const configuredUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.trim();
+
+    if (configuredUrl) {
+      const pointsToRemoteHost = /^https?:\/\/(?!localhost|127\.0\.0\.1)/i.test(configuredUrl);
+      if (isLocalHost && pointsToRemoteHost) {
+        return "http://127.0.0.1:3001";
+      }
+
+      return configuredUrl;
+    }
+
+    if (isLocalHost) {
+      return "http://127.0.0.1:3001";
+    }
+
+    return window.location.origin;
+  }
+
+  return process.env.NEXT_PUBLIC_SOCKET_URL?.trim() || "http://127.0.0.1:3001";
+};
+
+const SOCKET_URL = getSocketUrl();
 
 export const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
