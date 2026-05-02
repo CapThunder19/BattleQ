@@ -1,4 +1,4 @@
-# BATTLEQ: Tactical Web3 Arena 🛡️
+# BATTLEQ: Tactical Arena 🛡️
 
 **BattleQ** is a high-octane tactical grid-based strategy game. Navigate through shifting sectors, manage high-stakes energy reserves, and extract rare treasures in a high-fidelity "Cyber-Cinematic" environment.
 

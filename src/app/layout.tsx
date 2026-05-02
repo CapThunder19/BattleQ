@@ -14,7 +14,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "BattleQ | Real-time Arena Game",
-  description: "A behavior-driven, high-retention strategy arena on Initia.",
+  description: "A behavior-driven, high-retention real-time strategy arena.",
 };
 
 export default function RootLayout({

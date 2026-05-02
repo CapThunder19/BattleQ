@@ -143,7 +143,7 @@ export default function Lobby() {
                                 icon={<User className="w-10 h-10" />}
                                 entryFee={5}
                                 avgReward={12}
-                                stats="Prediction arena against the Initia dealer."
+                                stats="Prediction arena against the AI dealer."
                                 variant="blue"
                                 onClick={() => router.push("/arena?mode=solo")}
                             />
