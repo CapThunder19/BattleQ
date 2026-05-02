@@ -6,6 +6,7 @@
     "dev": "concurrently \"npm run dev:next\" \"npm run dev:server\"",
     "dev:next": "next dev -p 3000",
     "dev:server": "tsx src/server/gameServer.ts",
+    "prebuild": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
     "build": "next build",
     "build:server": "tsc -p tsconfig.server.json",
     "build:all": "npm run build && npm run build:server",
