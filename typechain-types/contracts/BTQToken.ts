@@ -36,7 +36,9 @@ export interface BTQTokenInterface extends Interface {
       | "name"
       | "owner"
       | "rate"
+      | "recordGameWin"
       | "renounceOwnership"
+      | "sell"
       | "setRate"
       | "symbol"
       | "totalSupply"
@@ -52,6 +54,7 @@ export interface BTQTokenInterface extends Interface {
       | "OwnershipTransferred"
       | "RateUpdated"
       | "TokensPurchased"
+      | "TokensSold"
       | "Transfer"
   ): EventFragment;
 
@@ -78,9 +81,14 @@ export interface BTQTokenInterface extends Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "rate", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "recordGameWin",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "sell", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "setRate",
     values: [BigNumberish]
@@ -115,9 +123,14 @@ export interface BTQTokenInterface extends Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "rate", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "recordGameWin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "sell", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setRate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
@@ -194,6 +207,28 @@ export namespace TokensPurchasedEvent {
     buyer: string;
     nativeAmount: bigint;
     tokenAmount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace TokensSoldEvent {
+  export type InputTuple = [
+    seller: AddressLike,
+    tokenAmount: BigNumberish,
+    nativeAmount: BigNumberish
+  ];
+  export type OutputTuple = [
+    seller: string,
+    tokenAmount: bigint,
+    nativeAmount: bigint
+  ];
+  export interface OutputObject {
+    seller: string;
+    tokenAmount: bigint;
+    nativeAmount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -294,7 +329,15 @@ export interface BTQToken extends BaseContract {
 
   rate: TypedContractMethod<[], [bigint], "view">;
 
+  recordGameWin: TypedContractMethod<
+    [rewardAmount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+
+  sell: TypedContractMethod<[btqAmount: BigNumberish], [void], "nonpayable">;
 
   setRate: TypedContractMethod<[_newRate: BigNumberish], [void], "nonpayable">;
 
@@ -369,8 +412,14 @@ export interface BTQToken extends BaseContract {
     nameOrSignature: "rate"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "recordGameWin"
+  ): TypedContractMethod<[rewardAmount: BigNumberish], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "sell"
+  ): TypedContractMethod<[btqAmount: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "setRate"
   ): TypedContractMethod<[_newRate: BigNumberish], [void], "nonpayable">;
@@ -430,6 +479,13 @@ export interface BTQToken extends BaseContract {
     TokensPurchasedEvent.OutputObject
   >;
   getEvent(
+    key: "TokensSold"
+  ): TypedContractEvent<
+    TokensSoldEvent.InputTuple,
+    TokensSoldEvent.OutputTuple,
+    TokensSoldEvent.OutputObject
+  >;
+  getEvent(
     key: "Transfer"
   ): TypedContractEvent<
     TransferEvent.InputTuple,
@@ -480,6 +536,17 @@ export interface BTQToken extends BaseContract {
       TokensPurchasedEvent.InputTuple,
       TokensPurchasedEvent.OutputTuple,
       TokensPurchasedEvent.OutputObject
+    >;
+
+    "TokensSold(address,uint256,uint256)": TypedContractEvent<
+      TokensSoldEvent.InputTuple,
+      TokensSoldEvent.OutputTuple,
+      TokensSoldEvent.OutputObject
+    >;
+    TokensSold: TypedContractEvent<
+      TokensSoldEvent.InputTuple,
+      TokensSoldEvent.OutputTuple,
+      TokensSoldEvent.OutputObject
     >;
 
     "Transfer(address,address,uint256)": TypedContractEvent<

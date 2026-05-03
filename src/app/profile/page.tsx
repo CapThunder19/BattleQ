@@ -13,8 +13,7 @@ import { DashboardStat, HistoryRow, TacticalSkill, ReputationMeter } from "@/com
 import { AuthGuard } from "@/components/shared/AuthGuard";
 import { useGameStore } from "@/store/useGameStore";
 import { ConnectWallet } from "@/components/wallet/ConnectWallet";
-import BuyBTQ from "@/components/wallet/BuyBTQ";
-import WithdrawBTQ from "@/components/wallet/WithdrawBTQ";
+
 import WalletPanel from "@/components/wallet/WalletPanel";
 import { useAccount } from "wagmi";
 

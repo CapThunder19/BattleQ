@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getDefaultWallets, getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import type { Chain } from "viem";
 import { createConfig, WagmiConfig } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
+import { mainnet, sepolia, arbitrumSepolia } from "wagmi/chains";
 
 // Optional custom chains can be provided via NEXT_PUBLIC_* env vars.
 const robinhoodChainId = Number(process.env.NEXT_PUBLIC_ROBINHOOD_CHAIN_ID || 0) || undefined;
@@ -24,7 +24,7 @@ if (robinhoodChainId && robinhoodRpc) {
   });
 }
 
-const chains = [sepolia, mainnet, ...customChains];
+const chains = [arbitrumSepolia, sepolia, mainnet, ...customChains];
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 

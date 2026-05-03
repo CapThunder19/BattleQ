@@ -12,11 +12,15 @@ import { LevelSelectionScreen } from "@/components/solo/LevelSelectionScreen";
 import { GameRulesOverlay } from "@/components/solo/GameRulesOverlay";
 import { GameScreen } from "@/components/solo/GameScreen";
 import { StakeConfirmation } from "@/components/solo/StakeConfirmation";
+import { useSyncBtqBalance } from "@/hooks/useSyncBtqBalance";
 
 export default function Arena() {
     const [mode, setMode] = useState("solo");
     const { solo, setSoloStatus, startLevel, setStake } = useGameStore();
     const [showTour, setShowTour] = useState(false);
+
+    // Sync on-chain BTQ balance → game store score
+    useSyncBtqBalance();
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);

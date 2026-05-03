@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @title BTQ Token
  * @dev BattleQ in-game currency token.
  * Users can buy BTQ by sending native currency (ETH/RHT/testnet chain token).
+ * Users can sell BTQ back to get native currency.
  * Rate: 0.001 native token = 1 BTQ
  */
 contract BTQToken is ERC20, ERC20Burnable, Ownable {
@@ -18,6 +19,7 @@ contract BTQToken is ERC20, ERC20Burnable, Ownable {
 
     event RateUpdated(uint256 newRate);
     event TokensPurchased(address indexed buyer, uint256 nativeAmount, uint256 tokenAmount);
+    event TokensSold(address indexed seller, uint256 tokenAmount, uint256 nativeAmount);
 
     // OpenZeppelin v5 Ownable requires an initial owner in the base constructor
     constructor() ERC20("BattleQ", "BTQ") Ownable(msg.sender) {}
@@ -37,6 +39,41 @@ contract BTQToken is ERC20, ERC20Burnable, Ownable {
         _mint(msg.sender, btqAmount);
 
         emit TokensPurchased(msg.sender, msg.value, btqAmount);
+    }
+
+    /**
+     * @dev Allow users to sell BTQ tokens back to the contract for native currency.
+     * Burns the user's BTQ and sends them native currency at the current rate.
+     * @param btqAmount: amount of BTQ tokens to sell (in wei / 18 decimals)
+     */
+    function sell(uint256 btqAmount) external {
+        require(btqAmount > 0, "Must sell more than 0");
+        require(balanceOf(msg.sender) >= btqAmount, "Insufficient BTQ balance");
+
+        // Calculate native amount to return: nativeAmount = (btqAmount * rate) / 1e18
+        uint256 nativeAmount = (btqAmount * rate) / 1e18;
+        require(address(this).balance >= nativeAmount, "Contract has insufficient native balance");
+
+        // Burn the user's BTQ tokens
+        _burn(msg.sender, btqAmount);
+
+        // Send native currency to the user
+        (bool success, ) = msg.sender.call{value: nativeAmount}("");
+        require(success, "Native transfer failed");
+
+        emit TokensSold(msg.sender, btqAmount, nativeAmount);
+    }
+
+    /**
+     * @dev Record a game win and mint BTQ rewards to the player.
+     * WARNING: In a production environment, this MUST be protected by a backend oracle
+     * signature to prevent players from arbitrarily minting tokens. 
+     * Left public for hackathon demonstration purposes.
+     * @param rewardAmount: amount of BTQ won (in wei)
+     */
+    function recordGameWin(uint256 rewardAmount) external {
+        require(rewardAmount > 0, "Reward must be > 0");
+        _mint(msg.sender, rewardAmount);
     }
 
     /**

@@ -1,77 +1,69 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { parseEther, formatEther, BrowserProvider, Contract } from "ethers";
-import { useAccount, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { parseEther, formatEther } from "viem";
+import { useAccount, useBalance, useChainId, useDisconnect, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { Wallet, LogOut, Send, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { parseAbi } from "viem";
 
-const BTQ_ABI = [
+const BTQ_ABI = parseAbi([
   "function balanceOf(address account) view returns (uint256)",
   "function buy() external payable",
-  "function withdraw() external",
+  "function sell(uint256 btqAmount) external",
   "function rate() view returns (uint256)",
-];
+]);
 
 export function WalletPanel() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   const { disconnect } = useDisconnect();
-  const [buyAmount, setBuyAmount] = useState<number>(10);
+  const [buyAmount, setBuyAmount] = useState<number>(1);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [buyStatus, setBuyStatus] = useState<string | null>(null);
   const [withdrawStatus, setWithdrawStatus] = useState<string | null>(null);
 
-  const contractAddress = process.env.NEXT_PUBLIC_BTQ_ADDRESS || "";
+  const contractAddressByChain: Record<number, string | undefined> = {
+    46630: process.env.NEXT_PUBLIC_BTQ_ADDRESS_ROBINHOOD,
+    421614: process.env.NEXT_PUBLIC_BTQ_ADDRESS_ARBITRUM_SEPOLIA,
+  };
+  const contractAddress =
+    contractAddressByChain[chainId] || process.env.NEXT_PUBLIC_BTQ_ADDRESS || "";
   const nativePerBTQ = Number(process.env.NEXT_PUBLIC_BTQ_RATE_NATIVE_PER_BTQ || 0.001);
-  const expectedChainId = Number(process.env.NEXT_PUBLIC_ROBINHOOD_CHAIN_ID || 0);
-  const [currentChainId, setCurrentChainId] = React.useState<number | null>(null);
+  const isSupportedChain = chainId === 46630 || chainId === 421614;
 
-  React.useEffect(() => {
-    // Read chain id from injected provider (MetaMask / WalletConnect) if available
-    const readChain = async () => {
-      try {
-        const provider = (window as any).ethereum;
-        if (provider && provider.request) {
-          const hex = await provider.request({ method: "eth_chainId" });
-          const id = typeof hex === "string" ? parseInt(hex, 16) : Number(hex);
-          setCurrentChainId(Number(id));
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
+  // Read native token balance
+  const { data: nativeBalanceData } = useBalance({
+    address: address,
+    query: { enabled: isConnected && !!address },
+  });
+  const nativeBalance = nativeBalanceData ? Number(formatEther(nativeBalanceData.value)) : 0;
+  const nativeSymbol = nativeBalanceData?.symbol || "ETH";
 
-    readChain();
+  // Max BTQ you can buy with current native balance (leave ~0.001 for gas)
+  const gasReserve = 0.001;
+  const maxBuyable = Math.max(0, Math.floor((nativeBalance - gasReserve) / nativePerBTQ));
 
-    const handleChainChanged = (hex: string) => {
-      try {
-        setCurrentChainId(parseInt(hex, 16));
-      } catch (e) {
-        setCurrentChainId(null);
-      }
-    };
-
-    const provider = (window as any).ethereum;
-    if (provider && provider.on) provider.on("chainChanged", handleChainChanged);
-    return () => { if (provider && provider.removeListener) provider.removeListener("chainChanged", handleChainChanged); };
-  }, []);
-
-  // Read BTQ balance
-  const { data: balanceRaw } = useReadContract({
+  // Read BTQ balance (polls every 4s to stay fresh after tx)
+  const { data: balanceRaw, refetch: refetchBtq } = useReadContract({
     address: contractAddress as `0x${string}`,
     abi: BTQ_ABI,
     functionName: "balanceOf",
     args: [address!],
-    query: { enabled: isConnected && !!contractAddress && !!address },
+    query: {
+      enabled: isConnected && !!contractAddress && !!address && isSupportedChain,
+      refetchInterval: 4000,
+    },
   });
 
-  const btqBalance = balanceRaw ? Number(formatEther(balanceRaw as any)) : 0;
+  const btqBalance = balanceRaw ? Number(formatEther(balanceRaw as bigint)) : 0;
   const requiredNative = (buyAmount || 0) * nativePerBTQ;
+  const hasEnoughFunds = nativeBalance >= requiredNative + gasReserve;
 
   // Single writeContract hook for both operations
-  const { writeContract, isPending } = useWriteContract();
-  const [txHash, setTxHash] = React.useState<string | undefined>(undefined);
+  const { writeContractAsync, isPending } = useWriteContract();
+  const [txHash, setTxHash] = React.useState<`0x${string}` | undefined>(undefined);
   const { isLoading: isTxLoading, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
   });
@@ -102,74 +94,39 @@ export function WalletPanel() {
 
   const handleBuy = async () => {
     if (!contractAddress) {
-      setBuyStatus("Contract address not configured.");
+      setBuyStatus(`Contract address not configured for chain ${chainId}.`);
+      return;
+    }
+    if (!isSupportedChain) {
+      setBuyStatus(`Unsupported chain ${chainId}. Switch to Robinhood Testnet (46630) or Arbitrum Sepolia (421614).`);
       return;
     }
     if (!buyAmount || buyAmount <= 0) {
       setBuyStatus("Please enter a valid amount.");
       return;
     }
-    if (expectedChainId && currentChainId && currentChainId !== expectedChainId) {
-      setBuyStatus(`Switch wallet to chain ${expectedChainId} (current: ${currentChainId}).`);
+    if (!hasEnoughFunds) {
+      setBuyStatus(`Insufficient funds. You have ${nativeBalance.toFixed(6)} ${nativeSymbol} but need ~${(requiredNative + gasReserve).toFixed(6)} (${requiredNative.toFixed(6)} + gas). Max you can buy: ${maxBuyable} BTQ.`);
       return;
     }
     
     try {
-      const valueWei = parseEther(requiredNative.toString());
-      // Verify contract code exists at address on current chain to avoid calling non-contract
-      try {
-        const providerRaw = (window as any).ethereum;
-        if (providerRaw) {
-          const bpCheck = new BrowserProvider(providerRaw);
-          const code = await bpCheck.getCode(contractAddress as `0x${string}`);
-          if (!code || code === "0x" || code === "0x0") {
-            setBuyStatus("No contract found at NEXT_PUBLIC_BTQ_ADDRESS on the connected chain. Deploy contract and update .env.");
-            setOperation(null);
-            return;
-          }
-        }
-      } catch (codeErr) {
-        console.warn("Failed to verify contract code:", codeErr);
-      }
+      const valueWei = parseEther(requiredNative.toFixed(18));
       setBuyStatus("Sending transaction...");
       setOperation("buy");
 
-      const tx = await writeContract({
+      const hash = await writeContractAsync({
         address: contractAddress as `0x${string}`,
         abi: BTQ_ABI,
         functionName: "buy",
-        value: valueWei as any,
-      } as any);
-
-      // writeContract may return the transaction response when awaited
-      if (tx && (tx as any).hash) {
-        setTxHash((tx as any).hash);
-        setBuyStatus(`Transaction sent: ${(tx as any).hash}`);
-        console.log("buy tx:", tx);
-      } else {
-        console.log("writeContract returned (no hash):", tx);
-        // fallback to signer-based send to obtain a tx hash
-        try {
-          const provider = (window as any).ethereum;
-          if (provider) {
-            const bp = new BrowserProvider(provider);
-            const signer2 = await bp.getSigner();
-            const contractWithSigner = new Contract(contractAddress as `0x${string}`, BTQ_ABI, signer2);
-            const tx2 = await contractWithSigner.buy({ value: valueWei as any });
-            setTxHash(tx2.hash);
-            setBuyStatus(`Transaction sent via signer: ${tx2.hash}`);
-            console.log("buy tx (signer):", tx2);
-          } else {
-            setBuyStatus("Transaction submitted (no hash returned) and no injected provider available for fallback.");
-          }
-        } catch (err2) {
-          console.error("signer fallback buy error:", err2);
-          setBuyStatus(`Signer fallback error: ${err2?.message || String(err2)}`);
-          setOperation(null);
-        }
-      }
+        value: valueWei,
+      });
+      setTxHash(hash);
+      setBuyStatus(`Transaction sent!`);
+      console.log("buy tx hash:", hash);
     } catch (err: any) {
-      setBuyStatus(`Error: ${err?.message || String(err)}`);
+      const msg = err?.shortMessage || err?.message || String(err);
+      setBuyStatus(`Error: ${msg}`);
       setOperation(null);
       console.error("buy error:", err);
     }
@@ -177,72 +134,37 @@ export function WalletPanel() {
 
   const handleWithdraw = async () => {
     if (!contractAddress) {
-      setWithdrawStatus("Contract address not configured.");
+      setWithdrawStatus(`Contract address not configured for chain ${chainId}.`);
       return;
     }
-    if (btqBalance <= 0) {
+    if (!isSupportedChain) {
+      setWithdrawStatus(`Unsupported chain ${chainId}. Switch to Robinhood Testnet (46630) or Arbitrum Sepolia (421614).`);
+      return;
+    }
+    if (btqBalance <= 0 || !balanceRaw) {
       setWithdrawStatus("Insufficient BTQ balance.");
-      return;
-    }
-    if (expectedChainId && currentChainId && currentChainId !== expectedChainId) {
-      setWithdrawStatus(`Switch wallet to chain ${expectedChainId} (current: ${currentChainId}).`);
       return;
     }
     
     try {
-      // Verify contract code exists before attempting withdraw
-      try {
-        const providerRaw = (window as any).ethereum;
-        if (providerRaw) {
-          const bpCheck = new BrowserProvider(providerRaw);
-          const code = await bpCheck.getCode(contractAddress as `0x${string}`);
-          if (!code || code === "0x" || code === "0x0") {
-            setWithdrawStatus("No contract found at NEXT_PUBLIC_BTQ_ADDRESS on the connected chain. Deploy contract and update .env.");
-            setOperation(null);
-            return;
-          }
-        }
-      } catch (codeErr) {
-        console.warn("Failed to verify contract code:", codeErr);
-      }
-      setWithdrawStatus("Sending withdraw transaction...");
+      setWithdrawStatus("Selling BTQ for native tokens...");
       setOperation("withdraw");
 
-      const tx = await writeContract({
+      // Pass the raw on-chain balance (full precision) to sell all BTQ
+      const hash = await writeContractAsync({
         address: contractAddress as `0x${string}`,
         abi: BTQ_ABI,
-        functionName: "withdraw",
-      } as any);
-
-      if (tx && (tx as any).hash) {
-        setTxHash((tx as any).hash);
-        setWithdrawStatus(`Transaction sent: ${(tx as any).hash}`);
-        console.log("withdraw tx:", tx);
-      } else {
-        console.log("writeContract returned (no hash):", tx);
-        try {
-          const provider = (window as any).ethereum;
-          if (provider) {
-            const bp = new BrowserProvider(provider);
-            const signer2 = await bp.getSigner();
-            const contractWithSigner = new Contract(contractAddress as `0x${string}`, BTQ_ABI, signer2);
-            const tx2 = await contractWithSigner.withdraw();
-            setTxHash(tx2.hash);
-            setWithdrawStatus(`Transaction sent via signer: ${tx2.hash}`);
-            console.log("withdraw tx (signer):", tx2);
-          } else {
-            setWithdrawStatus("Transaction submitted (no hash returned) and no injected provider available for fallback.");
-          }
-        } catch (err2) {
-          console.error("signer fallback withdraw error:", err2);
-          setWithdrawStatus(`Signer fallback error: ${err2?.message || String(err2)}`);
-          setOperation(null);
-        }
-      }
+        functionName: "sell",
+        args: [balanceRaw as bigint],
+      });
+      setTxHash(hash);
+      setWithdrawStatus(`Transaction sent!`);
+      console.log("sell tx hash:", hash);
     } catch (err: any) {
-      setWithdrawStatus(`Error: ${err?.message || String(err)}`);
+      const msg = err?.shortMessage || err?.message || String(err);
+      setWithdrawStatus(`Error: ${msg}`);
       setOperation(null);
-      console.error("withdraw error:", err);
+      console.error("sell error:", err);
     }
   };
 
@@ -270,9 +192,14 @@ export function WalletPanel() {
         </button>
       </div>
 
-      {/* Address Display */}
-      <div className="text-[11px] text-white/50 font-mono bg-black/20 px-3 py-2 rounded border border-white/5">
-        {address?.slice(0, 6)}...{address?.slice(-4)}
+      {/* Address + Native Balance Display */}
+      <div className="flex items-center justify-between bg-black/20 px-3 py-2 rounded border border-white/5">
+        <span className="text-[11px] text-white/50 font-mono">
+          {address?.slice(0, 6)}...{address?.slice(-4)}
+        </span>
+        <span className="text-[10px] text-primary/80 font-black">
+          {nativeBalance.toFixed(6)} {nativeSymbol}
+        </span>
       </div>
 
       {/* Action Buttons */}
@@ -313,29 +240,41 @@ export function WalletPanel() {
             className="bg-black/40 border border-primary/20 rounded-lg p-4 space-y-3"
           >
             <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">Buy BTQ</h4>
-            <p className="text-[9px] text-white/60">Rate: 1 BTQ = {nativePerBTQ} native</p>
+            <p className="text-[9px] text-white/60">Rate: 1 BTQ = {nativePerBTQ} {nativeSymbol}</p>
 
             <div className="flex gap-2">
               <input
                 type="number"
                 min={1}
+                max={maxBuyable}
                 value={buyAmount}
-                onChange={(e) => setBuyAmount(Number(e.target.value))}
+                onChange={(e) => setBuyAmount(Math.max(0, Number(e.target.value)))}
                 className="bg-black/60 border border-white/10 px-3 py-2 text-white rounded flex-1 text-[10px]"
                 placeholder="Amount"
               />
+              <button
+                onClick={() => setBuyAmount(maxBuyable)}
+                className="px-3 py-2 bg-white/10 border border-white/20 text-white/80 font-black text-[9px] tracking-widest rounded hover:bg-white/20 transition-all"
+              >
+                MAX
+              </button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleBuy}
-                disabled={isPending || isTxLoading || operation === "buy"}
+                disabled={isPending || isTxLoading || operation === "buy" || !hasEnoughFunds || buyAmount <= 0}
                 className="px-4 py-2 bg-primary text-black font-bold rounded hover:bg-white transition-all disabled:opacity-50"
               >
                 {(isPending || isTxLoading) && operation === "buy" ? "..." : "BUY"}
               </motion.button>
             </div>
 
-            <p className="text-[9px] text-white/60">Will send ~{requiredNative.toFixed(4)} native</p>
+            <div className="flex items-center justify-between">
+              <p className="text-[9px] text-white/60">Cost: ~{requiredNative.toFixed(6)} {nativeSymbol}</p>
+              <p className={`text-[9px] font-bold ${hasEnoughFunds ? 'text-emerald-400' : 'text-red-400'}`}>
+                {hasEnoughFunds ? `✓ Affordable (max ${maxBuyable})` : `✗ Need more ${nativeSymbol} (max ${maxBuyable})`}
+              </p>
+            </div>
 
             {(isPending || isTxLoading) && operation === "buy" && <p className="text-[9px] text-white/80">Waiting for confirmation...</p>}
             {isTxSuccess && operation === null && <p className="text-[9px] text-emerald-300">Purchase successful!</p>}

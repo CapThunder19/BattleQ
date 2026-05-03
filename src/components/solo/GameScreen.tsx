@@ -1,15 +1,32 @@
-'use client';
+"use client";
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, X, Zap, Activity, Radio, Cpu, Swords } from 'lucide-react';
-import React from 'react';
+import { Target, X, Zap, Activity, Radio, Cpu, Swords, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { Tile } from './Tile';
 import { StatItem } from '@/components/ui/StatItem';
 import { LossStakingCard } from './LossStakingCard';
+import { useWriteContract, useChainId } from 'wagmi';
+import { parseAbi, parseEther } from 'viem';
+
+const BTQ_ABI = parseAbi([
+    "function recordGameWin(uint256 rewardAmount) external",
+    "function burn(uint256 amount) external"
+]);
 
 export const GameScreen = () => {
     const { solo, clickTile, setSoloStatus, startLevel, nextLevel } = useGameStore();
+    const chainId = useChainId();
+    const { writeContractAsync } = useWriteContract();
+    
+    const [isPending, setIsPending] = useState(false);
+
+    const contractAddressByChain: Record<number, string | undefined> = {
+        46630: process.env.NEXT_PUBLIC_BTQ_ADDRESS_ROBINHOOD,
+        421614: process.env.NEXT_PUBLIC_BTQ_ADDRESS_ARBITRUM_SEPOLIA,
+    };
+    const contractAddress = contractAddressByChain[chainId] || process.env.NEXT_PUBLIC_BTQ_ADDRESS || "";
 
     const tryStart = (lvl: number) => {
         const practiceStakes = [5, 10, 15];
@@ -25,52 +42,96 @@ export const GameScreen = () => {
     const practiceStakes = [5, 10, 15];
     const currentStake = isElite ? solo.stake : (practiceStakes[solo.level - 1] || solo.level * 5);
 
+    const handleClaimReward = async () => {
+        try {
+            setIsPending(true);
+            const multiplier = isElite ? (1.5 + (solo.revealedTiles.size * 0.1)) : (1.5 + (solo.level * 0.2));
+            const winAmount = Math.floor(currentStake * multiplier);
+            
+            await writeContractAsync({
+                address: contractAddress as `0x${string}`,
+                abi: BTQ_ABI,
+                functionName: 'recordGameWin',
+                args: [parseEther(winAmount.toString())],
+            });
+            nextLevel();
+        } catch (error) {
+            console.error(error);
+            alert("Failed to claim reward.");
+        } finally {
+            setIsPending(false);
+        }
+    };
+
+    const handlePayPenalty = async () => {
+        try {
+            setIsPending(true);
+            await writeContractAsync({
+                address: contractAddress as `0x${string}`,
+                abi: BTQ_ABI,
+                functionName: 'burn',
+                args: [parseEther(currentStake.toString())],
+            });
+            tryStart(solo.level);
+        } catch (error) {
+            console.error(error);
+            alert("Failed to pay penalty. Transaction rejected?");
+        } finally {
+            setIsPending(false);
+        }
+    };
+
     // Win Overlay Component
-    const WinOverlay = () => (
-        <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[500] bg-primary/20 backdrop-blur-3xl flex items-center justify-center p-4"
-        >
+    const WinOverlay = () => {
+        const multiplier = isElite ? (1.5 + (solo.revealedTiles.size * 0.1)) : (1.5 + (solo.level * 0.2));
+        const winAmount = Math.floor(currentStake * multiplier);
+
+        return (
             <motion.div 
-                initial={{ scale: 0.8, y: 50, opacity: 0 }} 
-                animate={{ scale: 1, y: 0, opacity: 1 }}
-                className="bg-background border-4 border-primary p-12 text-center shadow-[0_0_120px_rgba(0,242,255,0.6)] relative overflow-hidden"
-                style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[500] bg-primary/20 backdrop-blur-3xl flex items-center justify-center p-4"
             >
-                {/* Background Grid Accent */}
-                <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(0,242,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(0,242,255,0.5)_1px,transparent_1px)] bg-[size:20px_20px]" />
-                
-                <h2 className="text-7xl font-black text-primary mb-2 tracking-tighter leading-none neon-text">SYSTEM_BREACHED</h2>
-                <div className="h-2 w-full bg-primary/20 mb-6" />
-                <p className="text-xl text-white mb-2 tracking-[0.3em] font-black uppercase">{isElite ? 'ELITE_ARENA_SECURED' : `TREASURE_SECURED // LVL_${solo.level}_CLEAR`}</p>
-                <div className="flex flex-col mb-10">
-                    <span className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em]">STAKE: {currentStake} BTQ</span>
-                    <p className="text-4xl text-primary font-black tracking-widest">+ {solo.score} BTQ</p>
-                    {isElite && (
-                        <span className="text-[11px] text-primary/60 font-black uppercase mt-2">
-                            REWARD SCALED BY {Math.max(1, solo.revealedTiles.size)}X TILE MULTIPLIER
-                        </span>
-                    )}
-                </div>
-                
-                <div className="flex gap-6 justify-center relative z-10">
-                    <button
-                        onClick={() => setSoloStatus('selecting')}
-                        className="px-8 py-3 bg-white/5 border-2 border-white/20 text-white font-black uppercase text-xs tracking-widest transition-all hover:bg-white/10"
-                    >
-                        RETURN_TO_HUB
-                    </button>
-                    <button
-                        onClick={() => nextLevel()}
-                        className="px-12 py-4 bg-primary text-black font-black uppercase text-sm tracking-[0.4em] hover:bg-white transition-all shadow-xl group"
-                        style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}
-                    >
-                        {isElite ? 'RE-SCAN' : 'NEXT_PHASE'} {"->"}
-                    </button>
-                </div>
+                <motion.div 
+                    initial={{ scale: 0.8, y: 50, opacity: 0 }} 
+                    animate={{ scale: 1, y: 0, opacity: 1 }}
+                    className="bg-background border-4 border-primary p-12 text-center shadow-[0_0_120px_rgba(0,242,255,0.6)] relative overflow-hidden"
+                    style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}
+                >
+                    <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(0,242,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(0,242,255,0.5)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                    
+                    <h2 className="text-7xl font-black text-primary mb-2 tracking-tighter leading-none neon-text">SYSTEM_BREACHED</h2>
+                    <div className="h-2 w-full bg-primary/20 mb-6" />
+                    <p className="text-xl text-white mb-2 tracking-[0.3em] font-black uppercase">{isElite ? 'ELITE_ARENA_SECURED' : `TREASURE_SECURED // LVL_${solo.level}_CLEAR`}</p>
+                    <div className="flex flex-col mb-10">
+                        <span className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em]">STAKE: {currentStake} BTQ</span>
+                        <p className="text-4xl text-primary font-black tracking-widest">+ {winAmount} BTQ ON-CHAIN</p>
+                        {isElite && (
+                            <span className="text-[11px] text-primary/60 font-black uppercase mt-2">
+                                REWARD SCALED BY {Math.max(1, solo.revealedTiles.size)}X TILE MULTIPLIER
+                            </span>
+                        )}
+                    </div>
+                    
+                    <div className="flex gap-6 justify-center relative z-10">
+                        <button
+                            onClick={() => setSoloStatus('selecting')}
+                            className="px-8 py-3 bg-white/5 border-2 border-white/20 text-white font-black uppercase text-xs tracking-widest transition-all hover:bg-white/10"
+                        >
+                            RETURN_TO_HUB
+                        </button>
+                        <button
+                            onClick={handleClaimReward}
+                            disabled={isPending}
+                            className="px-12 py-4 bg-primary text-black font-black uppercase text-sm tracking-[0.4em] hover:bg-white transition-all shadow-xl flex items-center gap-2 disabled:opacity-50"
+                            style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}
+                        >
+                            {isPending ? <Loader2 className="animate-spin w-5 h-5"/> : (isElite ? 'CLAIM & RE-SCAN' : 'CLAIM & NEXT_PHASE ->')}
+                        </button>
+                    </div>
+                </motion.div>
             </motion.div>
-        </motion.div>
-    );
+        );
+    };
 
     // Loss Overlay Component
     const LossOverlay = () => (
@@ -90,6 +151,7 @@ export const GameScreen = () => {
                 
                 <h2 className="text-6xl font-black text-red-600 mb-4 tracking-tighter uppercase glitch">MISSION_FAILED</h2>
                 <p className="text-xl text-white/50 mb-10 tracking-widest font-black italic">OUT_OF_ENERGY // SCAN_ABORTED</p>
+                <p className="text-red-400 font-bold mb-4">PENALTY: -{currentStake} BTQ</p>
                 
                 <div className="flex gap-4 justify-center">
                     <button
@@ -99,11 +161,12 @@ export const GameScreen = () => {
                         ABORT_PROTOCOL
                     </button>
                     <button
-                        onClick={() => tryStart(solo.level)}
-                        className="px-10 py-4 bg-red-600 text-white font-black uppercase text-sm tracking-[0.3em] hover:bg-red-500 transition-all shadow-lg"
+                        onClick={handlePayPenalty}
+                        disabled={isPending}
+                        className="px-10 py-4 bg-red-600 text-white font-black uppercase text-sm tracking-[0.3em] hover:bg-red-500 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
                         style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}
                     >
-                        REBOOT_HUNT
+                        {isPending ? <Loader2 className="animate-spin w-5 h-5"/> : 'PAY PENALTY & REBOOT'}
                     </button>
                 </div>
             </motion.div>
@@ -112,17 +175,9 @@ export const GameScreen = () => {
 
     return (
         <div className="h-screen flex flex-col overflow-hidden relative font-mono text-white cyber-grid">
-            {/* Rules Overlay remains in parent, but Win/Loss handled here */}
             <AnimatePresence>
                 {solo.gameStatus === 'won' && <WinOverlay />}
-                {solo.gameStatus === 'lost' && (
-                    <LossStakingCard 
-                        level={solo.level}
-                        amountLost={currentStake}
-                        onRetry={() => tryStart(solo.level)}
-                        onExit={() => setSoloStatus('selecting')}
-                    />
-                )}
+                {solo.gameStatus === 'lost' && <LossOverlay />}
             </AnimatePresence>
 
             {/* Tactical HUD Header */}

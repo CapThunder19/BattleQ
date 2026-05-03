@@ -8,12 +8,16 @@ import { AuthGuard } from "@/components/shared/AuthGuard";
 import { RoomCard } from "@/components/lobby/RoomCard";
 import { ConnectWallet } from "@/components/wallet/ConnectWallet";
 import WalletPanel from "@/components/wallet/WalletPanel";
+import { useSyncBtqBalance } from "@/hooks/useSyncBtqBalance";
 import { useState, useEffect } from "react";
 
 export default function Lobby() {
     const router = useRouter();
     const walletUser = getWalletUser();
     const [mounted, setMounted] = useState(false);
+
+    // Sync on-chain BTQ balance → game store score
+    useSyncBtqBalance();
 
     useEffect(() => {
         setMounted(true);
