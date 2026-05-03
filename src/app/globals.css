@@ -31,7 +31,7 @@
   --color-neon-yellow: var(--neon-yellow);
   --color-neon-green: var(--neon-green);
   --color-warning: var(--warning);
-  --font-sans: 'Outfit', var(--font-geist-sans), sans-serif;
+  --font-sans: var(--font-geist-sans), sans-serif;
   
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;

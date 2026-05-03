@@ -3,9 +3,11 @@
 import React, { useEffect } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
+import { useRainbowKitEnabled } from "@/components/providers/WalletProvider";
 
 
 export function ConnectWallet() {
+  const rainbowKitEnabled = useRainbowKitEnabled();
   const { address, isConnected } = useAccount();
 
   useEffect(() => {
@@ -18,6 +20,8 @@ export function ConnectWallet() {
       localStorage.removeItem("battleq_user");
     }
   }, [address, isConnected]);
+
+  if (!rainbowKitEnabled) return null;
 
   return <ConnectButton showBalance={false} chainStatus="icon" />;
 }

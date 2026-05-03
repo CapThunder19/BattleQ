@@ -2,9 +2,9 @@
 
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { getDefaultWallets, getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import type { Chain } from "viem";
-import { createConfig, WagmiConfig } from "wagmi";
+import { WagmiProvider, createConfig, http } from "wagmi";
 import { mainnet, sepolia, arbitrumSepolia } from "wagmi/chains";
 
 // Optional custom chains can be provided via NEXT_PUBLIC_* env vars.
@@ -16,7 +16,6 @@ if (robinhoodChainId && robinhoodRpc) {
   customChains.push({
     id: robinhoodChainId,
     name: "Robinhood Testnet",
-    network: "robinhood-testnet",
     nativeCurrency: { name: "RHT", symbol: "RHT", decimals: 18 },
     rpcUrls: { default: { http: [robinhoodRpc] } },
     blockExplorers: { default: { name: "Explorer", url: process.env.NEXT_PUBLIC_ROBINHOOD_EXPLORER || "https://explorer" } },
@@ -24,33 +23,46 @@ if (robinhoodChainId && robinhoodRpc) {
   });
 }
 
-const chains = [arbitrumSepolia, sepolia, mainnet, ...customChains];
-
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
-
-// Build default RainbowKit + wagmi config (uses WalletConnect project id)
-const { wallets } = getDefaultWallets({
-  appName: "BattleQ",
-  chains,
-  projectId,
-});
-
-const wagmiConfig = getDefaultConfig({
-  appName: "BattleQ",
-  chains,
-  wallets,
-  projectId,
-});
+const chains: [Chain, ...Chain[]] = [arbitrumSepolia, sepolia, mainnet, ...customChains];
 
 const queryClient = new QueryClient();
 
+const RainbowKitEnabledContext = React.createContext(false);
+
+export function useRainbowKitEnabled() {
+  return React.useContext(RainbowKitEnabledContext);
+}
+
 export function WalletProvider({ children }: { children: React.ReactNode }) {
+  const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+  const rainbowKitEnabled = Boolean(projectId);
+
+  const wagmiConfig = projectId
+    ? getDefaultConfig({
+        appName: "BattleQ",
+        chains,
+        projectId,
+        ssr: true,
+      })
+    : createConfig({
+        chains,
+        transports: {
+          [arbitrumSepolia.id]: http(),
+          [sepolia.id]: http(),
+          [mainnet.id]: http(),
+          ...(robinhoodChainId && robinhoodRpc ? { [robinhoodChainId]: http(robinhoodRpc) } : {}),
+        },
+        ssr: true,
+      });
+
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider chains={chains}>{children}</RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiConfig>
+    <RainbowKitEnabledContext.Provider value={rainbowKitEnabled}>
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          {rainbowKitEnabled ? <RainbowKitProvider>{children}</RainbowKitProvider> : children}
+        </QueryClientProvider>
+      </WagmiProvider>
+    </RainbowKitEnabledContext.Provider>
   );
 }
 
