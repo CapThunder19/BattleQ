@@ -12,7 +12,7 @@
     "build:server": "tsc -p tsconfig.server.json",
     "build:all": "npm run build",
     "start": "concurrently \"npm run start:next\" \"npm run start:server\"",
-    "start:next": "next start -p 3000",
+    "start:next": "node scripts/start-next.js",
     "start:server": "node dist/server/gameServer.js",
     "start:all": "npm run start",
     "lint": "next lint",
