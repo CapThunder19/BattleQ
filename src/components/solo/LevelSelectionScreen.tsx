@@ -7,6 +7,17 @@ import { useGameStore } from '@/store/useGameStore';
 export const LevelSelectionScreen = () => {
     const { solo, startLevel } = useGameStore();
 
+    const tryStart = (lvl: number) => {
+        const practiceStakes = [5, 10, 15];
+        const required = lvl > 3 ? solo.stake : (practiceStakes[lvl - 1] || lvl * 5);
+        if ((solo.score || 0) < required) {
+            // quick inline feedback — ask user to buy BTQ
+            alert(`Insufficient BTQ. You need ${required} BTQ to start this mission. Please buy BTQ.`);
+            return;
+        }
+        startLevel(lvl);
+    };
+
     const practiceLevels = [1, 2, 3];
     const isEliteUnlocked = solo.unlockedLevel > 3;
 
@@ -43,7 +54,7 @@ export const LevelSelectionScreen = () => {
                                     key={lvl}
                                     whileHover={!isLocked ? { scale: 1.02, y: -5 } : {}}
                                     whileTap={!isLocked ? { scale: 0.98 } : {}}
-                                    onClick={() => !isLocked && startLevel(lvl)}
+                                    onClick={() => !isLocked && tryStart(lvl)}
                                     disabled={isLocked}
                                     className={`
                                         relative h-40 rounded-lg border-2 flex flex-col items-center justify-center transition-all duration-300 overflow-hidden
@@ -85,7 +96,7 @@ export const LevelSelectionScreen = () => {
                     <motion.button
                         whileHover={isEliteUnlocked ? { scale: 1.01 } : {}}
                         whileTap={isEliteUnlocked ? { scale: 0.99 } : {}}
-                        onClick={() => isEliteUnlocked && startLevel(4)}
+                        onClick={() => isEliteUnlocked && tryStart(4)}
                         disabled={!isEliteUnlocked}
                         className={`
                             relative w-full py-12 px-8 border-2 flex flex-col md:flex-row items-center justify-between transition-all duration-500 overflow-hidden

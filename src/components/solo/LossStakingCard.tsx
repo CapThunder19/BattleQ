@@ -79,7 +79,7 @@ export const LossStakingCard: React.FC<LossStakingCardProps> = ({
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                         <AlertTriangle className="w-24 h-24 text-red-600" />
                     </div>
-                    <span className="text-[10px] text-red-500 font-bold uppercase tracking-[0.3em] mb-3 block opacity-70">CREDITS_TRANSFERRED_OUT</span>
+                    <span className="text-[10px] text-red-500 font-bold uppercase tracking-[0.3em] mb-3 block opacity-70">BTQ_TRANSFERRED_OUT</span>
                     <div className="flex items-baseline gap-4">
                         <motion.span 
                             animate={{ opacity: [1, 0.7, 1] }}
@@ -88,7 +88,7 @@ export const LossStakingCard: React.FC<LossStakingCardProps> = ({
                         >
                             -{amountLost}
                         </motion.span>
-                        <span className="text-xs font-black text-red-500 tracking-[0.4em] uppercase">CREDITS</span>
+                        <span className="text-xs font-black text-red-500 tracking-[0.4em] uppercase">BTQ</span>
                     </div>
                 </div>
 

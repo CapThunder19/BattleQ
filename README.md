@@ -42,6 +42,16 @@
 *   **Animation Engine**: Complex 3D CSS transforms and SVG-based glitch filters.
 *   **Icons**: [Lucide React](https://lucide.dev/).
 *   **Backend**: Node.js & Socket.io (for future multiplayer scalability).
+ 
+## ✨ Latest Features
+
+- **Real-time Duel Mode (Multiplayer)** — Shared chest grid duels with turn-based reveals, room codes, matchmaking, stake locking, and pot payouts.
+- **Stake & Betting System** — Create or join rooms with BQT stakes (configurable between 50–200); both players must confirm the room stake before matches start.
+- **Magnifier (Peek) Mechanic** — Scan a chest without opening it using magnifier charges earned in-game.
+- **Solo Engine Enhancements** — Dynamic grid scaling, fake treasures, trap tiles, adaptive moves, practice stakes for early levels, and per-session run history with rewards/penalties.
+- **AI & Behavior Engines** — Server-side bots and behavioral shaping (near-win nudges) to improve pacing and retention.
+- **Dealer Solo Rounds** — Dealer-driven solo hint rounds with wagered actions and immediate dealer responses via sockets.
+- **Dedicated Game Server** — Separate Express + Socket.IO engine (default socket port `3001`) handling duel/solo modes, confirmations, timers, and cleanup.
 
 ---
 
@@ -62,6 +72,54 @@ Open [http://localhost:3000](http://localhost:3000) to begin your mission.
 
 ---
 
+## 🧪 Development
+
+- **Install**: Clone the repo and install dependencies:
+```bash
+git clone <repo-url>
+cd BattleQ
+npm install
+```
+
+- **Environment**: Create a file named `.env.local` in the project root and set the client socket URL:
+```
+NEXT_PUBLIC_SOCKET_URL=http://127.0.0.1:3001
+```
+The frontend reads `NEXT_PUBLIC_SOCKET_URL` at runtime to connect to the game server.
+
+**Optional server environment variables** (used by the standalone game server):
+```
+# Socket server port (defaults to 3001)
+SOCKET_PORT=3001
+
+# CORS origins for Socket.IO (comma-separated or `*`)
+SOCKET_CORS_ORIGIN=http://localhost:3000
+
+# Alternative variable names the server checks
+PORT=3001
+CORS_ORIGIN=http://localhost:3000
+```
+Set `NEXT_PUBLIC_SOCKET_URL` to the public address where the socket server is reachable (for local dev `http://127.0.0.1:3001`).
+
+- **Run (development)**: Start both the Next.js app and the game server concurrently:
+```bash
+npm run dev
+```
+This runs Next.js on port `3000` and the local game server (via `tsx`) on port `3001` as defined by the `dev:next` and `dev:server` scripts in `package.json`.
+
+- **Run server only (dev)**:
+```bash
+npm run dev:server
+```
+
+- **Build & Start (production-like)**:
+```bash
+npm run build:all
+npm run start
+```
+
+---
+
 ## 📂 Project Structure
 
 ```text
@@ -69,10 +127,70 @@ Open [http://localhost:3000](http://localhost:3000) to begin your mission.
 │   ├── app/            # Tactical Routes (Lobby, Arena, Profile)
 │   ├── components/     
 │   │   ├── solo/       # Mission Logic (Grid, Staking, Loss/Win Cards)
+│   │   ├── wallet/     # Web3 (Connect Wallet, Buy BTQ)
 │   │   └── ui/         # Glass-Panel Design System
 │   ├── store/          # Global Persistence & Difficulty Logic
 │   └── lib/            # User & Contract Protocols
+├── contracts/
+│   └── BTQToken.sol    # ERC20 token + buy() function
+├── scripts/
+│   └── deploy.ts       # Multi-chain deployment
+├── hardhat.config.ts   # Hardhat config (Arbitrum + Robinhood)
+└── public/
 ```
+
+---
+
+## 🪙 Web3 & BTQ Token System
+
+**BTQ** is BattleQ's in-game token used for staking and matches. Users can purchase BTQ with testnet currency at a rate of:
+
+- **1 BTQ = 0.001 native testnet token**  
+- Supported chains: **Arbitrum Sepolia**, **Arbitrum One**, **Robinhood Testnet**
+
+### Connect Wallet & Buy BTQ
+
+1. Navigate to the **Lobby** → click **Connect Wallet** (top-right)
+2. Select your wallet and approve connection
+3. Go to **Profile** → scroll to "Web3 Wallet" section
+4. Set desired BTQ amount and click **Buy**
+5. Confirm transaction in your wallet
+6. BTQ tokens appear in your account and can be used for game stakes
+
+### Smart Contract (BTQToken.sol)
+
+- **ERC20 standard** token with burnable support
+- **`buy()`** function allows users to swap native tokens for BTQ
+- **Rate** set to `1e15 wei` (0.001 ETH/testnet) by default per BTQ
+- **Owner-only** rate and withdrawal functions
+
+### Deploy to Testnet
+
+```bash
+# Set up .env.local with PRIVATE_KEY and RPC URLs (see .env.example)
+npm install
+
+# Deploy to Arbitrum Sepolia
+npm run deploy:arbitrum-sepolia
+
+# Deploy to Arbitrum One
+npm run deploy:arbitrum-one
+
+# Deploy to Robinhood Testnet
+npm run deploy:robinhood
+```
+
+After deployment, copy the contract address to `.env.local`:
+```
+NEXT_PUBLIC_BTQ_ADDRESS=0x...
+```
+
+### Wagmi + RainbowKit
+
+- **WalletProvider** wraps the app with `WagmiConfig` and `RainbowKitProvider`
+- **ConnectWallet** button auto-detects connected chains and wallet address
+- **BuyBTQ** component reads `NEXT_PUBLIC_BTQ_ADDRESS` and `NEXT_PUBLIC_BTQ_RATE_NATIVE_PER_BTQ` from env
+- Wallet address stored in localStorage as the player ID for differentiation
 
 ---
 

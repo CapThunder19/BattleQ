@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Heart, Crosshair, ShieldPlus, SkipForward, Users, Bomb, Search } from "lucide-react";
 import { useSocket } from "@/hooks/useSocket";
 import { TutorialTour } from "@/components/game/TutorialTour";
-import { getGuestUser } from "@/lib/user";
+import { getWalletUser } from "@/lib/user";
 
 type ChestItem = "gun" | "health" | "skip" | "double_kill" | "magnifier" | "empty";
 
@@ -226,7 +226,7 @@ export function MultiplayerGameScreen() {
     setIsPeekMode(false);
   }, [roomId]);
 
-  const guestUser = useMemo(() => getGuestUser(), []);
+  const walletUser = useMemo(() => getWalletUser(), []);
 
   const copyRoomCode = async () => {
     if (!roomCode) return;
@@ -267,7 +267,7 @@ export function MultiplayerGameScreen() {
         .emit(
           "duel_join_random",
           {
-            name: guestUser,
+            name: walletUser,
             role: "attacker",
             betAmount: clampStake(betAmount),
           },
@@ -275,7 +275,7 @@ export function MultiplayerGameScreen() {
             if (err) {
               // Fallback for older server processes that don't have the new events.
               socket.emit("join_match", {
-                name: guestUser,
+                name: walletUser,
                 role: "attacker",
                 mode: "duel",
               });
@@ -312,7 +312,7 @@ export function MultiplayerGameScreen() {
         .emit(
           "duel_create_room",
           {
-            name: guestUser,
+            name: walletUser,
             role: "attacker",
             betAmount: clampStake(betAmount),
           },
@@ -360,7 +360,7 @@ export function MultiplayerGameScreen() {
           "duel_join_room",
           {
             roomCode: code,
-            name: guestUser,
+            name: walletUser,
             role: "attacker",
             betAmount: clampStake(betAmount),
           },
@@ -509,7 +509,7 @@ export function MultiplayerGameScreen() {
                         disabled={stakeLocked}
                       />
                     )}
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/50">BQT</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/50">BTQ</span>
                   </div>
 
                   {!stakeLocked && (
@@ -561,7 +561,7 @@ export function MultiplayerGameScreen() {
 
               {stakeLocked ? (
                 <p className="text-[11px] text-white/45">
-                  The room creator has set the stake amount to {stakeAmount} BQT.
+                  The room creator has set the stake amount to {stakeAmount} BTQ.
                 </p>
               ) : (
                 <p className="text-[11px] text-white/45">
@@ -588,12 +588,12 @@ export function MultiplayerGameScreen() {
                       </button>
                     </div>
                     <p className="text-[11px] text-white/50 mt-2">Share this code to invite a friend.</p>
-                    <p className="text-[11px] text-white/60 mt-1">Stake: {selectedStake} BQT</p>
+                    <p className="text-[11px] text-white/60 mt-1">Stake: {selectedStake} BTQ</p>
                   </div>
                 ) : (
                   <div className="mt-2">
                     <p className="text-[11px] text-white/50">Random matchmaking…</p>
-                    <p className="text-[11px] text-white/60 mt-1">Stake: {selectedStake} BQT</p>
+                    <p className="text-[11px] text-white/60 mt-1">Stake: {selectedStake} BTQ</p>
                   </div>
                 )}
                 <p className="text-[11px] text-white/60 mt-3">Players in room: {Math.max(1, waitingCount)}/2</p>
@@ -688,8 +688,8 @@ export function MultiplayerGameScreen() {
           <div className="text-right">
               <p id="stats-info" className="text-base md:text-lg font-extrabold text-primary">{statusText}</p>
               <div className="mt-1 text-[11px] text-white/60">
-                <span className="inline-block mr-4">Bet: {duelState?.betAmount ?? selectedStake} BQT</span>
-                <span className="inline-block mr-4">Pot: {duelState?.totalPot ?? selectedStake * 2} BQT</span>
+                <span className="inline-block mr-4">Bet: {duelState?.betAmount ?? selectedStake} BTQ</span>
+                <span className="inline-block mr-4">Pot: {duelState?.totalPot ?? selectedStake * 2} BTQ</span>
                 <span className="inline-block">Peek: {myPeekCharges}</span>
               </div>
           </div>
@@ -870,12 +870,12 @@ export function MultiplayerGameScreen() {
 
               <div className="mt-4 grid gap-2">
                 <p className={`text-sm uppercase tracking-widest ${isMeWinner ? "text-emerald-300" : "text-red-300"}`}>
-                  {isMeWinner ? `You won +${duelState.totalPot} BQT` : `You lost ${duelState.betAmount} BQT`}
+                  {isMeWinner ? `You won +${duelState.totalPot} BTQ` : `You lost ${duelState.betAmount} BTQ`}
                 </p>
                 <p className="text-sm uppercase tracking-widest text-white/70">
-                  Stake: {duelState.betAmount} BQT • Pot: {duelState.totalPot} BQT
+                  Stake: {duelState.betAmount} BTQ • Pot: {duelState.totalPot} BTQ
                 </p>
-                <p className="text-[11px] text-white/55">Winner receives {duelState.totalPot} BQT pot</p>
+                <p className="text-[11px] text-white/55">Winner receives {duelState.totalPot} BTQ pot</p>
               </div>
 
               <button

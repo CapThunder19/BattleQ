@@ -87,8 +87,8 @@ export const StakeConfirmation: React.FC<StakeConfirmationProps> = ({
                         </div>
                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mb-2 block">REQUIRED_STAKE</span>
                         <div className="flex items-center justify-between">
-                            <div className="flex items-baseline gap-3">
-                                {onStakeChange ? (
+                                        <div className="flex items-baseline gap-3">
+                                        {onStakeChange ? (
                                     <div className="flex items-baseline gap-2 group/input">
                                         <input 
                                             type="text" 
@@ -106,10 +106,10 @@ export const StakeConfirmation: React.FC<StakeConfirmationProps> = ({
                                         />
                                         <span className="text-xs font-black text-primary tracking-widest uppercase animate-pulse">EDIT_VAL</span>
                                     </div>
-                                ) : (
+                                        ) : (
                                     <div className="flex items-baseline gap-3">
                                         <span className="text-5xl font-black text-white tracking-tighter">{stakeAmount}</span>
-                                        <span className="text-xs font-black text-primary tracking-widest uppercase">CREDITS</span>
+                                        <span className="text-xs font-black text-primary tracking-widest uppercase">BTQ</span>
                                     </div>
                                 )}
                             </div>
@@ -141,7 +141,7 @@ export const StakeConfirmation: React.FC<StakeConfirmationProps> = ({
                         <span className="text-[10px] text-primary/60 font-bold uppercase tracking-[0.2em] mb-2 block">POTENTIAL_YIELD</span>
                         <div className="flex items-baseline gap-3">
                             <span className="text-5xl font-black text-primary tracking-tighter">~{potentialReward}</span>
-                            <span className="text-xs font-black text-primary tracking-widest uppercase">CREDITS</span>
+                            <span className="text-xs font-black text-primary tracking-widest uppercase">BTQ</span>
                         </div>
                     </div>
                 </div>

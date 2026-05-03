@@ -5,17 +5,21 @@ import { useRouter } from "next/navigation";
 import { 
   User, Shield, TrendingUp, History, Star, ArrowLeft, 
   Coins, Rocket, Target, Activity, Cpu, Zap, 
-  Terminal, BarChart3, Fingerprint, Lock
+  Terminal, BarChart3, Fingerprint, Lock, Wallet as WalletIcon
 } from "lucide-react";
-import { getGuestUser } from "@/lib/user";
+import { getWalletUser } from "@/lib/user";
 import { Badge } from "@/components/ui/Badge";
 import { DashboardStat, HistoryRow, TacticalSkill, ReputationMeter } from "@/components/profile/ProfileComponents";
 import { AuthGuard } from "@/components/shared/AuthGuard";
 import { useGameStore } from "@/store/useGameStore";
+import { ConnectWallet } from "@/components/wallet/ConnectWallet";
+
+import WalletPanel from "@/components/wallet/WalletPanel";
+import { useAccount } from "wagmi";
 
 export default function Profile() {
   const router = useRouter();
-  const guestUser = getGuestUser();
+    const walletUser = getWalletUser();
   const { solo } = useGameStore();
 
   const winRatio = solo.history.length > 0 
@@ -84,7 +88,7 @@ export default function Profile() {
                             </div>
                             
                             <div className="text-center space-y-0.5">
-                                <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white leading-none">{guestUser}</h3>
+                                <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white leading-none">{walletUser}</h3>
                                 <p className="text-[8px] text-primary font-black uppercase tracking-[0.3em]">Unit Active</p>
                             </div>
                             
@@ -114,7 +118,7 @@ export default function Profile() {
                 {/* Right Side: Command Dashboard */}
                 <div className="lg:col-span-8 flex flex-col gap-4 overflow-hidden">
                     <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
-                        <DashboardStat icon={Coins} label="Credits" value={`${solo.score} BQT`} />
+                        <DashboardStat icon={Coins} label="BTQ" value={`${solo.score} BTQ`} />
                         <DashboardStat icon={Target} label="Tier" value={solo.unlockedLevel > 3 ? "Elite" : "Scout"} />
                         <DashboardStat icon={Lock} label="Access" value={solo.withdrawalUnlocked ? "FULL" : "REST"} />
                         <DashboardStat icon={Zap} label="System" value="SYNC" />
@@ -157,8 +161,8 @@ export default function Profile() {
                             solo.history.map((op, i) => (
                                 <HistoryRow 
                                     key={i}
-                                    result={op.result === 'SUCCESS' ? 'VIC' : 'LOSS'}
-                                    reward={`${op.reward} BQT`}
+                              result={op.result === 'SUCCESS' ? 'VIC' : 'LOSS'}
+                              reward={`${op.reward} BTQ`}
                                     mode={`Sector ${op.level} Scan`}
                                     date={op.date}
                                     color={op.result === 'SUCCESS' ? 'green' : 'red'}
@@ -171,6 +175,11 @@ export default function Profile() {
                             </div>
                           )}
                         </div>
+                    </motion.div>
+
+                    {/* Wallet & BTQ Purchase Section */}
+                    <motion.div variants={itemVariants} className="glass-panel p-6 border-primary/30 bg-primary/5 col-span-full">
+                        <WalletPanel />
                     </motion.div>
                 </div>
             </motion.div>

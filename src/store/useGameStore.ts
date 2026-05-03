@@ -34,6 +34,7 @@ export interface SoloGameState {
   trapTiles: Set<string>;
   revealedTiles: Set<string>;
   gameStatus: 'selecting' | 'rules' | 'staking' | 'playing' | 'won' | 'lost';
+  /** On-chain BTQ balance (set by sync hook) */
   score: number;
   history: SoloHistory[];
   withdrawalUnlocked: boolean;
@@ -57,6 +58,7 @@ interface GameState {
   clickTile: (x: number, y: number) => void;
   resetSolo: () => void;
   nextLevel: () => void;
+  syncScore: (onChainBalance: number) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -202,7 +204,6 @@ export const useGameStore = create<GameState>((set, get) => ({
             ...state.solo,
             revealedTiles: newRevealed,
             gameStatus: 'won',
-            score: state.solo.score + winAmount,
             unlockedLevel: nextUnlockedLevel,
             withdrawalUnlocked: withdrawalUnlocked,
             history: [
@@ -226,7 +227,6 @@ export const useGameStore = create<GameState>((set, get) => ({
           revealedTiles: newRevealed,
           movesLeft: 0,
           gameStatus: 'lost',
-          score: Math.max(0, state.solo.score - stakeAmount),
           history: [
             {
               result: 'FAILED' as const,
@@ -254,7 +254,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       ...state.solo,
       level: 1,
       unlockedLevel: 1,
-      score: 0,
       gameStatus: 'selecting',
       withdrawalUnlocked: false,
       stake: 50,
@@ -265,5 +264,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { solo } = get();
     const nextLevel = solo.level >= 3 ? 4 : solo.level + 1;
     get().startLevel(nextLevel);
-  }
+  },
+
+  // Sync on-chain BTQ balance
+  syncScore: (onChainBalance: number) => set((state) => ({
+    solo: {
+      ...state.solo,
+      score: onChainBalance,
+    }
+  })),
 }));

@@ -14,10 +14,13 @@
     "start:next": "next start -p 3000",
     "start:server": "node dist/server/gameServer.js",
     "start:all": "npm run start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy:arbitrum-sepolia": "hardhat run scripts/deploy.ts --network arbitrumSepolia",
+    "deploy:arbitrum-one": "hardhat run scripts/deploy.ts --network arbitrumOne",
+    "deploy:robinhood": "hardhat run scripts/deploy.ts --network robinhoodTestnet"
   },
   "dependencies": {
-    
+    "@rainbow-me/rainbowkit": "^2.1.5",
     "@tanstack/react-query": "^5.96.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -25,6 +28,7 @@
     "@upstash/redis": "^1.37.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.6",
+    "ethers": "^6.13.5",
     "express": "^5.2.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
@@ -35,17 +39,22 @@
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.5.0",
     "typescript": "^5",
-    
+    "wagmi": "^2.12.13",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.1.1",
+    "@openzeppelin/contracts": "^5.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/ws": "^8.18.1",
     "concurrently": "^9.2.1",
+    "dotenv": "^16.4.7",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
+    "hardhat": "^2.19.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0"
   }

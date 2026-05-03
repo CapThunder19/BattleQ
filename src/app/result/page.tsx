@@ -76,7 +76,7 @@ export default function Result() {
                     >
                         <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-primary rounded-full animate-ping" /> SECTOR_CLEAR</span>
                         <div className="h-4 w-[1px] bg-white/20" />
-                        <span className="text-white">REWARDS_BUFFERED: 100 BQT</span>
+                        <span className="text-white">REWARDS_BUFFERED: 100 BTQ</span>
                     </motion.div>
                 </div>
             </header>
@@ -116,7 +116,7 @@ export default function Result() {
                     <div className="relative z-10 mt-12 flex justify-between items-center p-6 bg-secondary/10 border border-secondary/20 rounded-2xl shadow-[inset_0_0_20px_rgba(189,0,255,0.1)]">
                          <div className="flex flex-col">
                              <span className="text-[10px] text-secondary font-black uppercase tracking-widest">Net Harvest</span>
-                             <span className="text-4xl font-black italic tracking-tighter text-white uppercase leading-none">+12.5 BQT</span>
+                             <span className="text-4xl font-black italic tracking-tighter text-white uppercase leading-none">+12.5 BTQ</span>
                          </div>
                          <Wallet className="w-10 h-10 text-secondary opacity-50" />
                     </div>
