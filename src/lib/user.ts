@@ -1,14 +1,9 @@
-export function getGuestUser(): string {
-  if (typeof window === "undefined") return "Explorer";
-  let user = localStorage.getItem("battleq_user");
-  if (!user) {
-    user = `guest_${Math.random().toString(36).substring(2, 8)}`;
-    localStorage.setItem("battleq_user", user);
-  }
-  return user;
+export function getWalletUser(): string {
+  if (typeof window === "undefined") return "Wallet_User";
+  return localStorage.getItem("battleq_user") || "Wallet_User";
 }
 
-export function clearGuestUser() {
+export function clearWalletUser() {
   if (typeof window !== "undefined") {
     localStorage.removeItem("battleq_user");
   }

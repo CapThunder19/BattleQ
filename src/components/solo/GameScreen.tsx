@@ -10,6 +10,16 @@ import { LossStakingCard } from './LossStakingCard';
 
 export const GameScreen = () => {
     const { solo, clickTile, setSoloStatus, startLevel, nextLevel } = useGameStore();
+
+    const tryStart = (lvl: number) => {
+        const practiceStakes = [5, 10, 15];
+        const required = lvl > 3 ? solo.stake : (practiceStakes[lvl - 1] || lvl * 5);
+        if ((solo.score || 0) < required) {
+            alert(`Insufficient BTQ. You need ${required} BTQ to start this mission. Please buy BTQ.`);
+            return;
+        }
+        startLevel(lvl);
+    };
     
     const isElite = solo.level > 3;
     const practiceStakes = [5, 10, 15];
@@ -34,8 +44,8 @@ export const GameScreen = () => {
                 <div className="h-2 w-full bg-primary/20 mb-6" />
                 <p className="text-xl text-white mb-2 tracking-[0.3em] font-black uppercase">{isElite ? 'ELITE_ARENA_SECURED' : `TREASURE_SECURED // LVL_${solo.level}_CLEAR`}</p>
                 <div className="flex flex-col mb-10">
-                    <span className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em]">STAKE: {currentStake} BQT</span>
-                    <p className="text-4xl text-primary font-black tracking-widest">+ {solo.score} CREDITS</p>
+                    <span className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em]">STAKE: {currentStake} BTQ</span>
+                    <p className="text-4xl text-primary font-black tracking-widest">+ {solo.score} BTQ</p>
                     {isElite && (
                         <span className="text-[11px] text-primary/60 font-black uppercase mt-2">
                             REWARD SCALED BY {Math.max(1, solo.revealedTiles.size)}X TILE MULTIPLIER
@@ -89,7 +99,7 @@ export const GameScreen = () => {
                         ABORT_PROTOCOL
                     </button>
                     <button
-                        onClick={() => startLevel(solo.level)}
+                        onClick={() => tryStart(solo.level)}
                         className="px-10 py-4 bg-red-600 text-white font-black uppercase text-sm tracking-[0.3em] hover:bg-red-500 transition-all shadow-lg"
                         style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}
                     >
@@ -109,7 +119,7 @@ export const GameScreen = () => {
                     <LossStakingCard 
                         level={solo.level}
                         amountLost={currentStake}
-                        onRetry={() => startLevel(solo.level)}
+                        onRetry={() => tryStart(solo.level)}
                         onExit={() => setSoloStatus('selecting')}
                     />
                 )}
@@ -145,10 +155,10 @@ export const GameScreen = () => {
                     </div>
 
                     <div className="flex items-center gap-8">
-                        <div className="hidden sm:flex items-center gap-6 bg-white/5 px-6 py-2 border-x border-white/10" style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}>
+                            <div className="hidden sm:flex items-center gap-6 bg-white/5 px-6 py-2 border-x border-white/10" style={{ clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)' }}>
                             <StatItem icon={<Target className="w-5 h-5 text-primary"/>} value={`${solo.gridSize}x${solo.gridSize}`} label="GRID" />
                             <div className="w-[1px] h-6 bg-white/10" />
-                            <StatItem icon={<Zap className="w-5 h-5 text-accent"/>} value={`${solo.score}`} label="CREDITS" />
+                            <StatItem icon={<Zap className="w-5 h-5 text-accent"/>} value={`${solo.score}`} label="BTQ" />
                         </div>
                     </div>
                 </div>

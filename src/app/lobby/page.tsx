@@ -3,14 +3,16 @@
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Users, User, Rocket, Shield, TrendingUp, Wallet, ChevronRight, LayoutGrid, Zap, Cpu, Globe } from "lucide-react";
-import { getGuestUser } from "@/lib/user";
+import { getWalletUser } from "@/lib/user";
 import { AuthGuard } from "@/components/shared/AuthGuard";
 import { RoomCard } from "@/components/lobby/RoomCard";
+import { ConnectWallet } from "@/components/wallet/ConnectWallet";
+import WalletPanel from "@/components/wallet/WalletPanel";
 import { useState, useEffect } from "react";
 
 export default function Lobby() {
     const router = useRouter();
-    const guestUser = getGuestUser();
+    const walletUser = getWalletUser();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -78,12 +80,18 @@ export default function Lobby() {
                         <div className="flex items-center gap-10">
                             <div className="hidden md:flex flex-col items-end gap-1">
                                 <span className="text-base font-black italic uppercase tracking-[0.2em] text-white/90 font-mono">
-                                    {guestUser}
+                                    {walletUser}
                                 </span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] text-primary uppercase font-black tracking-widest opacity-70 font-mono">GUEST_AUTH_OK</span>
+                                    <span className="text-[10px] text-primary uppercase font-black tracking-widest opacity-70 font-mono">WALLET_AUTH_OK</span>
                                     <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
                                 </div>
+                            </div>
+
+                            <div className="h-10 w-[1px] bg-primary/20" />
+
+                            <div className="flex items-center">
+                              <ConnectWallet />
                             </div>
 
                             <div className="h-10 w-[1px] bg-primary/20" />
@@ -127,7 +135,15 @@ export default function Lobby() {
                                 The behavior-engine adapts with every decision you make.
                             </p>
                         </div>
-
+                        
+                        {/* Wallet Panel */}
+                        <motion.div 
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="w-full md:w-96 shrink-0"
+                        >
+                            <WalletPanel />
+                        </motion.div>
                     </motion.div>
 
                     {/* Arena Grid */}

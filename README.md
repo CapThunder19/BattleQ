@@ -127,10 +127,70 @@ npm run start
 │   ├── app/            # Tactical Routes (Lobby, Arena, Profile)
 │   ├── components/     
 │   │   ├── solo/       # Mission Logic (Grid, Staking, Loss/Win Cards)
+│   │   ├── wallet/     # Web3 (Connect Wallet, Buy BTQ)
 │   │   └── ui/         # Glass-Panel Design System
 │   ├── store/          # Global Persistence & Difficulty Logic
 │   └── lib/            # User & Contract Protocols
+├── contracts/
+│   └── BTQToken.sol    # ERC20 token + buy() function
+├── scripts/
+│   └── deploy.ts       # Multi-chain deployment
+├── hardhat.config.ts   # Hardhat config (Arbitrum + Robinhood)
+└── public/
 ```
+
+---
+
+## 🪙 Web3 & BTQ Token System
+
+**BTQ** is BattleQ's in-game token used for staking and matches. Users can purchase BTQ with testnet currency at a rate of:
+
+- **1 BTQ = 0.001 native testnet token**  
+- Supported chains: **Arbitrum Sepolia**, **Arbitrum One**, **Robinhood Testnet**
+
+### Connect Wallet & Buy BTQ
+
+1. Navigate to the **Lobby** → click **Connect Wallet** (top-right)
+2. Select your wallet and approve connection
+3. Go to **Profile** → scroll to "Web3 Wallet" section
+4. Set desired BTQ amount and click **Buy**
+5. Confirm transaction in your wallet
+6. BTQ tokens appear in your account and can be used for game stakes
+
+### Smart Contract (BTQToken.sol)
+
+- **ERC20 standard** token with burnable support
+- **`buy()`** function allows users to swap native tokens for BTQ
+- **Rate** set to `1e15 wei` (0.001 ETH/testnet) by default per BTQ
+- **Owner-only** rate and withdrawal functions
+
+### Deploy to Testnet
+
+```bash
+# Set up .env.local with PRIVATE_KEY and RPC URLs (see .env.example)
+npm install
+
+# Deploy to Arbitrum Sepolia
+npm run deploy:arbitrum-sepolia
+
+# Deploy to Arbitrum One
+npm run deploy:arbitrum-one
+
+# Deploy to Robinhood Testnet
+npm run deploy:robinhood
+```
+
+After deployment, copy the contract address to `.env.local`:
+```
+NEXT_PUBLIC_BTQ_ADDRESS=0x...
+```
+
+### Wagmi + RainbowKit
+
+- **WalletProvider** wraps the app with `WagmiConfig` and `RainbowKitProvider`
+- **ConnectWallet** button auto-detects connected chains and wallet address
+- **BuyBTQ** component reads `NEXT_PUBLIC_BTQ_ADDRESS` and `NEXT_PUBLIC_BTQ_RATE_NATIVE_PER_BTQ` from env
+- Wallet address stored in localStorage as the player ID for differentiation
 
 ---
 

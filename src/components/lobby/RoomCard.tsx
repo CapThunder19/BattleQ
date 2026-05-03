@@ -84,7 +84,7 @@ export function RoomCard({ title, icon, entryFee, avgReward, stats, variant, onC
               <span className="text-[10px] text-gray-500 uppercase font-black tracking-[0.2em] font-mono">STAKE_REQUIRED</span>
             </div>
             <span className="text-4xl font-black italic tracking-tighter text-white font-mono leading-none">
-              {entryFee} <span className="text-[12px] font-normal opacity-50 not-italic uppercase tracking-widest ml-1">BQT</span>
+              {entryFee} <span className="text-[12px] font-normal opacity-50 not-italic uppercase tracking-widest ml-1">BTQ</span>
             </span>
           </div>
         </div>

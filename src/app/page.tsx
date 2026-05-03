@@ -8,22 +8,20 @@ import {
 } from "lucide-react";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 import { useState, useEffect } from "react";
+import { useAccount } from "wagmi";
+import { ConnectWallet } from "@/components/wallet/ConnectWallet";
 
 export default function Onboarding() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const { isConnected } = useAccount();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleJoin = () => {
-    if (typeof window !== "undefined") {
-        if (!localStorage.getItem("battleq_user")) {
-          const guestId = `guest_${Math.random().toString(36).substring(2, 8)}`;
-          localStorage.setItem("battleq_user", guestId);
-        }
-    }
+    if (!isConnected) return;
     router.push("/lobby");
   };
 
@@ -122,13 +120,20 @@ export default function Onboarding() {
 
         {/* Action Center (Pulled Higher) */}
         <motion.div variants={itemVariants} className="flex flex-col items-center gap-8 w-full">
+            {!isConnected && (
+              <div className="flex flex-col items-center gap-3">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Connect Wallet To Initialize</span>
+                <ConnectWallet />
+              </div>
+            )}
             <div className="relative group">
                 <div className="absolute -inset-4 border border-primary/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleJoin}
-                    className="relative px-12 py-5 bg-primary text-black font-black italic uppercase text-2xl tracking-[0.3em] transition-all overflow-hidden"
+                    disabled={!isConnected}
+                    className="relative px-12 py-5 bg-primary text-black font-black italic uppercase text-2xl tracking-[0.3em] transition-all overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ clipPath: 'polygon(5% 0, 100% 0, 95% 100%, 0 100%)' }}
                 >
                     <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
@@ -171,7 +176,7 @@ export default function Onboarding() {
           <FeatureCard 
             icon={<Target className="w-7 h-7 text-primary" />}
             title="Sovereign Engine"
-            desc="Master the predictive behavior patterns of Solo Sectors. Clear high-density grids to harvest initial BQT reserves."
+            desc="Master the predictive behavior patterns of Solo Sectors. Clear high-density grids to harvest initial BTQ reserves."
           />
           <FeatureCard 
             icon={<Swords className="w-7 h-7 text-secondary" />}
@@ -188,7 +193,7 @@ export default function Onboarding() {
         {/* Bottom Technical Readout */}
         <motion.div variants={itemVariants} className="mt-2 flex flex-col items-center gap-2 opacity-20">
             <div className="flex items-center gap-6">
-                <span className="text-[8px] font-black uppercase tracking-[0.5em]">Auth: GUEST_MODE</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.5em]">Auth: WALLET_ONLY</span>
                 <span className="text-[8px] font-black uppercase tracking-[0.5em]">Ver: 2.5.0_ALPHA</span>
             </div>
             <div className="flex items-center gap-4">
