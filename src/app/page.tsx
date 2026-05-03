@@ -10,18 +10,25 @@ import { FeatureCard } from "@/components/ui/FeatureCard";
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { ConnectWallet } from "@/components/wallet/ConnectWallet";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useRainbowKitEnabled } from "@/components/providers/WalletProvider";
 
 export default function Onboarding() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const { isConnected } = useAccount();
+  const rainbowKitEnabled = useRainbowKitEnabled();
+  const { openConnectModal } = useConnectModal();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleJoin = () => {
-    if (!isConnected) return;
+    if (!isConnected) {
+      if (rainbowKitEnabled) openConnectModal?.();
+      return;
+    }
     router.push("/lobby");
   };
 
@@ -132,8 +139,8 @@ export default function Onboarding() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleJoin}
-                    disabled={!isConnected}
-                    className="relative px-12 py-5 bg-primary text-black font-black italic uppercase text-2xl tracking-[0.3em] transition-all overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-disabled={!isConnected}
+                  className="relative px-12 py-5 bg-primary text-black font-black italic uppercase text-2xl tracking-[0.3em] transition-all overflow-hidden"
                     style={{ clipPath: 'polygon(5% 0, 100% 0, 95% 100%, 0 100%)' }}
                 >
                     <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
